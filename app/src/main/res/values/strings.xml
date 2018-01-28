@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ReemersionDemo</string>
+    <string name="title_activity_reemerge_controller">ReemergeController</string>
+    <string name="title_activity_record_controller">RecordController</string>
+</resources>
