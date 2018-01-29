@@ -4,9 +4,12 @@ import android.app.Activity;
 import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.example.alex.reemersiondemo.R;
+import com.example.alex.reemersiondemo.reemerge.FrameMatcher;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -40,12 +43,18 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
 
     private Mat                                     mRgba;
     private Mat                                     mGray;
-    private ArrayList<Rect>                         boundRects;     //the rectangle on objects
-    private ArrayList<ArrayList<KeyPoint>>          featureList;    //features inside one rectangle, corresponding to boundRects
+    private ArrayList<Rect>                         boundRects;         //the rectangle on objects
+    private ArrayList<ArrayList<KeyPoint>>          featureList;        //features inside one rectangle, corresponding to boundRects
     private MatOfKeyPoint                           objectKeypoints;
     private Mat                                     descriptors;
+    private int                                     selectedIndex;      //record the rectangle user selected
+    private Mat                                     ROI;
+    private MatOfKeyPoint                           ROIKeypoints;
+    private Mat                                     ROIDescriptors;
+    private Mat                                     tmpROIGray;
 
     private FrameDetector                           detector;
+    private FrameMatcher                            matcher;
 
 
 
@@ -78,6 +87,10 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         objectKeypoints = new MatOfKeyPoint();
         descriptors = new Mat();
         featureList = new ArrayList<>();
+        ROIKeypoints = new MatOfKeyPoint();
+        ROIDescriptors = new Mat();
+        tmpROIGray = new Mat();
+        selectedIndex = -1;
     }
 
 
@@ -199,5 +212,42 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                 }
                 featureList.add(keypoints);
             }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        int touchAction = event.getActionMasked();
+        double xLocation=-1, yLocation=-1;
+        switch (touchAction) {
+            case MotionEvent.ACTION_DOWN:
+                xLocation =  event.getX();
+                yLocation =  event.getY();
+                break;
+        }
+
+        Point p=new Point(xLocation,yLocation);
+        Log.i(TAG, "touched position:\t" + xLocation + "\t" + yLocation);
+
+        for(int i=0; i < boundRects.size(); i++){
+            Rect rect = boundRects.get(i);
+            if(rect.contains(p)){
+                if (featureList.get(i).size() >= kMinFeatures) {
+                    selectedIndex = i;
+                    ROI = new Mat(mRgba, boundRects.get(i).clone());
+                    Imgproc.cvtColor(ROI, tmpROIGray, Imgproc.COLOR_BGRA2GRAY);
+                    detector.getFeatures(ROI, tmpROIGray, ROIKeypoints, ROIDescriptors);
+
+                    Toast.makeText(this, "Rect:" + rect.x + "\t"
+                                    + rect.y + "\t"
+                                    + rect.width + "\t"
+                                    + rect.height + "\t"
+                                    + "features:\t"
+                                    + featureList.get(i).size(),
+                            Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

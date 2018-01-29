@@ -58,7 +58,7 @@ public class FrameMatcher {
 //then there exists a possibility that we make an error if we select one or the other.
 
 private int ratioTest(ArrayList<MatOfDMatch> matches) {
-        ArrayList<MatOfDMatch> updatedMatches = new ArrayList<MatOfDMatch>();
+        ArrayList<MatOfDMatch> updatedMatches = new ArrayList<>();
         int removed=0;
         // for all matches
         for (int i = 0; i < matches.size(); i++) {
