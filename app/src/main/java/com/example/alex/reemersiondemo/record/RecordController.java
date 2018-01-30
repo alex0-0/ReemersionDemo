@@ -1,15 +1,14 @@
 package com.example.alex.reemersiondemo.record;
 
 import android.app.Activity;
-import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.example.alex.reemersiondemo.DataManager;
 import com.example.alex.reemersiondemo.R;
-import com.example.alex.reemersiondemo.reemerge.FrameMatcher;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -37,10 +36,9 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     //selected area is useful only when features inside is more than kMinFeatures
     private static final int                        kMinFeatures = 100;
     private static final int                        kMinRectLength = 80;
-
     private static final String                     TAG = "RecordController";
-    private CameraBridgeViewBase                    mOpenCvCameraView;
 
+    private CameraBridgeViewBase                    mOpenCvCameraView;
     private Mat                                     mRgba;
     private Mat                                     mGray;
     private ArrayList<Rect>                         boundRects;         //the rectangle on objects
@@ -52,11 +50,8 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private MatOfKeyPoint                           ROIKeypoints;
     private Mat                                     ROIDescriptors;
     private Mat                                     tmpROIGray;
-
     private FrameDetector                           detector;
-    private FrameMatcher                            matcher;
-
-
+    private DataManager                             dataManager;
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -66,7 +61,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
                     try {
-                        initializeOpenCVDependencies();
+                        initialize();
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -82,7 +77,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         }
     };
 
-    private void initializeOpenCVDependencies() throws IOException {
+    private void initialize() throws IOException {
         detector = FrameDetector.getInstance();
         objectKeypoints = new MatOfKeyPoint();
         descriptors = new Mat();
@@ -91,6 +86,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         ROIDescriptors = new Mat();
         tmpROIGray = new Mat();
         selectedIndex = -1;
+        dataManager = DataManager.getInstance();
     }
 
 
@@ -134,13 +130,13 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     }
 
     public void onCameraViewStarted(int width, int height) {
-//        mGray = new Mat();
-//        mRgba = new Mat();
+        mGray = new Mat();
+        mRgba = new Mat();
     }
 
     public void onCameraViewStopped() {
-//        mGray.release();
-//        mRgba.release();
+        mGray.release();
+        mRgba.release();
     }
 
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
@@ -244,6 +240,8 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                                     + "features:\t"
                                     + featureList.get(i).size(),
                             Toast.LENGTH_SHORT).show();
+                    dataManager.storeNecessaryData(tmpROIGray, ROIKeypoints, ROIDescriptors);
+                    finish();
                     return true;
                 }
             }

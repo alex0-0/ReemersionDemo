@@ -31,7 +31,7 @@ public class FrameMatcher {
         BFMatcher = DescriptorMatcher.create("BruteForce");
     }
 
-    public ArrayList<DMatch> matchFeatureImage(Mat input, Mat queryDescriptor, Mat template, MatOfKeyPoint keypoints1, MatOfKeyPoint keypoints2) {
+    public MatOfDMatch matchFeatureImage(Mat input, Mat queryDescriptor, Mat template, MatOfKeyPoint keypoints1, MatOfKeyPoint keypoints2) {
         ArrayList<MatOfDMatch> matches1 = new ArrayList<>();
         ArrayList<MatOfDMatch>  matches2 = new ArrayList<>();
 
@@ -44,11 +44,11 @@ public class FrameMatcher {
         MatOfDMatch symMatches = symmetryTest(matches1, matches2);
         MatOfDMatch ransacMatches = new MatOfDMatch();
 
-        if (symMatches.total() > 20) {
-            Mat fundemental = ransacTest(symMatches, keypoints1, keypoints2, ransacMatches);
-            return new ArrayList<>(ransacMatches.toList());
-        }
-        return new ArrayList<>(symMatches.toList());
+//        if (symMatches.total() > 20) {
+//            Mat fundemental = ransacTest(symMatches, keypoints1, keypoints2, ransacMatches);
+//            return ransacMatches;
+//        }
+        return symMatches;
     }
 
 
@@ -92,7 +92,7 @@ private int ratioTest(ArrayList<MatOfDMatch> matches) {
                 continue;
             }
 
-            for (int d = 0; d < matches1.size(); d++) {
+            for (int d = 0; d < matches2.size(); d++) {
                 MatOfDMatch matchIterator2 = matches2.get(d);
                 if (matchIterator2.total() < 2)
                     continue;

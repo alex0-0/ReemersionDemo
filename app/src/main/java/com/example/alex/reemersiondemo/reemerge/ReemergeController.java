@@ -5,20 +5,35 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.WindowManager;
 
+import com.example.alex.reemersiondemo.DataManager;
 import com.example.alex.reemersiondemo.R;
+import com.example.alex.reemersiondemo.record.FrameDetector;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.core.MatOfDMatch;
+import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.features2d.Features2d;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
 
 public class ReemergeController extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     private static final String TAG = "ReemergeController";
-    private CameraBridgeViewBase mOpenCvCameraView;
+    
+    private CameraBridgeViewBase                    mOpenCvCameraView;
+    private Mat                                     mRgba;
+    private Mat                                     mGray;
+    private FrameDetector                           detector;
+    private FrameMatcher                            matcher;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -28,7 +43,7 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
                     try {
-                        initializeOpenCVDependencies();
+                        initialize();
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -44,8 +59,10 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
         }
     };
 
-    private void initializeOpenCVDependencies() throws IOException {
+    private void initialize() throws IOException {
         mOpenCvCameraView.enableView();
+        detector = FrameDetector.getInstance();
+        matcher = FrameMatcher.getInstance();
     }
 
 
@@ -88,53 +105,42 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
     }
 
     public void onCameraViewStarted(int width, int height) {
-//        mGray = new Mat();
-//        mRgba = new Mat();
+        mGray = new Mat();
+        mRgba = new Mat();
     }
 
     public void onCameraViewStopped() {
-//        mGray.release();
-//        mRgba.release();
+        mGray.release();
+        mRgba.release();
     }
 
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        //if there is no record data
+        if (DataManager.getInstance().getTemplateImg() == null)
+            return inputFrame.rgba();
 
-//        mRgba = inputFrame.rgba();
-//        mGray = inputFrame.gray();
-//
-//        if (mAbsoluteFaceSize == 0) {
-//            int height = mGray.rows();
-//            if (Math.round(height * mRelativeFaceSize) > 0) {
-//                mAbsoluteFaceSize = Math.round(height * mRelativeFaceSize);
-//            }
-//            mNativeDetector.setMinFaceSize(mAbsoluteFaceSize);
-//        }
-//
-//        MatOfRect faces = new MatOfRect();
-//
-//        if (mDetectorType == JAVA_DETECTOR) {
-//            if (mJavaDetector != null)
-//                mJavaDetector.detectMultiScale(mGray, faces, 1.1, 2, 2, // TODO: objdetect.CV_HAAR_SCALE_IMAGE
-//                        new Size(mAbsoluteFaceSize, mAbsoluteFaceSize), new Size());
-//        }
-//        else if (mDetectorType == NATIVE_DETECTOR) {
-//            if (mNativeDetector != null)
-//                mNativeDetector.detect(mGray, faces);
-//        }
-//        else {
-//            Log.e(TAG, "Detection method is not selected!");
-//        }
-//
-//        facesArray = faces.toArray();
-//        for (int i = 0; i < facesArray.length; i++) {
-//            Imgproc.rectangle(mRgba, facesArray[i].tl(), facesArray[i].br(), FACE_RECT_COLOR, 3);
-//
-//
-//            Log.e(TAG, Integer.toString(facesArray[i].x)+","+Integer.toString(facesArray[i].y)+" "
-//                    +Integer.toString(facesArray[i].width)+","+Integer.toString(facesArray[i].height));
-//        }
-//
-//        return mRgba;
-        return inputFrame.rgba();
+        mRgba = inputFrame.rgba();
+        mGray = inputFrame.gray();
+        MatOfKeyPoint keyPoints = new MatOfKeyPoint();
+        Mat descriptors = new Mat();
+        Mat tDescriptors = DataManager.getInstance().getDescriptors();          //template descriptors
+        MatOfKeyPoint tKeyPoints = DataManager.getInstance().getKeyPoints();    //template keypoints
+        Mat tGray = DataManager.getInstance().getTemplateImg();                 //template image
+        MatOfDMatch goodMatches = new MatOfDMatch();
+        Mat imgMatches = new Mat();
+
+        detector.getFeatures(mRgba, mGray, keyPoints, descriptors);
+        if (descriptors.elemSize() > 0) {
+            goodMatches = matcher.matchFeatureImage(mRgba, descriptors, tDescriptors, keyPoints, tKeyPoints);
+            //TODO: MatOfByte may have problem, check it and reduce the number of keypoints
+            Features2d.drawMatches(mGray, keyPoints, tGray, tKeyPoints, goodMatches, imgMatches, Scalar.all(-1), Scalar.all(-1), new MatOfByte(), Features2d.NOT_DRAW_SINGLE_POINTS);
+        }
+
+        float confidence = (float)goodMatches.total()/tKeyPoints.total();
+        Log.i(TAG, "Confidence: \t" + confidence);
+        String strConf = "matched keypoints: \t" + goodMatches.total();
+        Imgproc.putText(imgMatches, strConf, new Point(20, 20), Core.FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 0, 255));
+
+        return imgMatches;
     }
 }

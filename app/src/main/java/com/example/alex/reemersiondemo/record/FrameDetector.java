@@ -38,6 +38,17 @@ public class FrameDetector {
 //        surf.detectAndCompute(gray, new Mat(), keyPoints, descriptors);
         surf.compute(gray, keyPoints, descriptors);
 
+
+        //    cv::KeyPointsFilter::retainBest(keypoints, kMaxFeatures);
+//
+//    if (keypoints.size() > kMaxFeatures)
+//    {
+//        std::sort(keypoints.begin(), keypoints.end(), [] (const cv::KeyPoint& kp1, const cv::KeyPoint& kp2) {
+//            return kp1.response > kp2.response;
+//        });
+//        keypoints.resize(kMaxFeatures);
+//    }
+
         Mat t = new Mat();
         Imgproc.cvtColor(inputFrame, t, Imgproc.COLOR_BGRA2BGR);
         Features2d.drawKeypoints(t, keyPoints, t, Scalar.all(-1), Features2d.DRAW_RICH_KEYPOINTS);
