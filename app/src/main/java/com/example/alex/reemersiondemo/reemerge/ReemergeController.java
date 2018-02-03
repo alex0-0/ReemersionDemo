@@ -131,16 +131,17 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
 
         detector.getFeatures(mRgba, mGray, keyPoints, descriptors);
         if (descriptors.elemSize() > 0) {
-            goodMatches = matcher.matchFeatureImage(mRgba, descriptors, tDescriptors, keyPoints, tKeyPoints);
+            goodMatches = matcher.matchFeatureImage(mGray, descriptors, tDescriptors, keyPoints, tKeyPoints);
             //TODO: MatOfByte may have problem, check it and reduce the number of keypoints
-            Features2d.drawMatches(mGray, keyPoints, tGray, tKeyPoints, goodMatches, imgMatches, Scalar.all(-1), Scalar.all(-1), new MatOfByte(), Features2d.NOT_DRAW_SINGLE_POINTS);
+//            Features2d.drawMatches(mGray, keyPoints, tGray, tKeyPoints, goodMatches, mGray, Scalar.all(-1), Scalar.all(-1), new MatOfByte(), Features2d.NOT_DRAW_SINGLE_POINTS);
+            Features2d.drawMatches(mGray, keyPoints, tGray, tKeyPoints, goodMatches, imgMatches);
         }
 
         float confidence = (float)goodMatches.total()/tKeyPoints.total();
         Log.i(TAG, "Confidence: \t" + confidence);
         String strConf = "matched keypoints: \t" + goodMatches.total();
-        Imgproc.putText(imgMatches, strConf, new Point(20, 20), Core.FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 0, 255));
+        Imgproc.putText(imgMatches, strConf, new Point(200, 200), Core.FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 0, 255));
 
-        return imgMatches;
+        return mGray;
     }
 }

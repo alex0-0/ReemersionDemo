@@ -87,6 +87,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         tmpROIGray = new Mat();
         selectedIndex = -1;
         dataManager = DataManager.getInstance();
+        boundRects = new ArrayList<>();
     }
 
 
@@ -139,7 +140,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         mRgba.release();
     }
 
-    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+    public synchronized Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
 
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();

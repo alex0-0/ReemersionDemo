@@ -11,12 +11,16 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.xfeatures2d.SURF;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Created by alex on 1/27/18.
  */
 
 public class FrameDetector {
+    private static final int                        kMaxFeatures = 200;
 
     private FastFeatureDetector     FAST;
     private SURF                    surf;
@@ -35,19 +39,19 @@ public class FrameDetector {
 
     public boolean getFeatures(Mat inputFrame, Mat gray, MatOfKeyPoint keyPoints, Mat descriptors) {
         FAST.detect(gray, keyPoints);
+        //too many features cause poor performance on mobile
+        if (keyPoints.total() > kMaxFeatures) {
+            List<KeyPoint> listOfKeyPoints = keyPoints.toList();
+            Collections.sort(listOfKeyPoints, new Comparator<KeyPoint>() {
+                @Override
+                public int compare(KeyPoint o1, KeyPoint o2) {
+                    return (int) (o2.response - o1.response);
+                }
+            });
+            keyPoints.fromList(listOfKeyPoints.subList(0, kMaxFeatures));
+        }
 //        surf.detectAndCompute(gray, new Mat(), keyPoints, descriptors);
         surf.compute(gray, keyPoints, descriptors);
-
-
-        //    cv::KeyPointsFilter::retainBest(keypoints, kMaxFeatures);
-//
-//    if (keypoints.size() > kMaxFeatures)
-//    {
-//        std::sort(keypoints.begin(), keypoints.end(), [] (const cv::KeyPoint& kp1, const cv::KeyPoint& kp2) {
-//            return kp1.response > kp2.response;
-//        });
-//        keypoints.resize(kMaxFeatures);
-//    }
 
         Mat t = new Mat();
         Imgproc.cvtColor(inputFrame, t, Imgproc.COLOR_BGRA2BGR);

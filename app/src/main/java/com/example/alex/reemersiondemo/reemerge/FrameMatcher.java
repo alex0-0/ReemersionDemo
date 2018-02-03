@@ -40,6 +40,7 @@ public class FrameMatcher {
 
         ratioTest(matches1);
         ratioTest(matches2);
+//        return matches1.get(0);
 
         MatOfDMatch symMatches = symmetryTest(matches1, matches2);
         MatOfDMatch ransacMatches = new MatOfDMatch();
@@ -91,15 +92,13 @@ private int ratioTest(ArrayList<MatOfDMatch> matches) {
             if (matchIterator1.total() < 2) {
                 continue;
             }
+            DMatch match1 = matchIterator1.toArray()[0];
 
             for (int d = 0; d < matches2.size(); d++) {
                 MatOfDMatch matchIterator2 = matches2.get(d);
                 if (matchIterator2.total() < 2)
                     continue;
-
-                DMatch match1 = matchIterator1.toArray()[0];
                 DMatch match2 = matchIterator2.toArray()[0];
-
                 // Match symmetry test
                 if (match1.queryIdx == match2.trainIdx && match2.queryIdx == match1.trainIdx) {
                     // add symmetrical match
@@ -112,7 +111,6 @@ private int ratioTest(ArrayList<MatOfDMatch> matches) {
         MatOfDMatch symMatches = new MatOfDMatch();
         symMatches.fromList(symMatchList);
         return symMatches;
-
     }
 
 // Identify good matches using RANSAC
