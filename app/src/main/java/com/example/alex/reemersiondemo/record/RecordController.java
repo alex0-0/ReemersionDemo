@@ -153,7 +153,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
             Scalar color = new Scalar(0,255,0);
             //            drawContours( frame, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, cv::Point() );
             if (i < boundRects.size()) {
-                Imgproc.rectangle( mRgba, boundRects.get(i).tl(), boundRects.get(i).br(), color, 2, 8, 0 );
+                Imgproc.rectangle( mRgba, boundRects.get(i).tl(), boundRects.get(i).br(), color, 3);
             }
         }
         return mRgba;
@@ -165,7 +165,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
 
         Imgproc.GaussianBlur(mGray, current, new Size(3,3),1);  //TODO: sigmaX is not sure, should test more
         Imgproc.resize(current, current, new Size(106, 80), 0, 0, Imgproc.INTER_CUBIC);
-        Imgproc.resize(current, current, new Size(640, 480));
+        Imgproc.resize(current, current, new Size(mGray.width(), mGray.height()));
 
         Mat thresoldOutput = new Mat();
         ArrayList<MatOfPoint> contours = new ArrayList<>();
@@ -217,8 +217,10 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         double xLocation=-1, yLocation=-1;
         switch (touchAction) {
             case MotionEvent.ACTION_DOWN:
-                xLocation =  event.getX();
-                yLocation =  event.getY();
+//                android.graphics.Point size = new android.graphics.Point();
+//                getWindowManager().getDefaultDisplay().getSize(size);
+                xLocation =  event.getX();// * 640 / size.x;
+                yLocation =  event.getY();// * 480 / size.y;
                 break;
         }
 

@@ -140,8 +140,9 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
         float confidence = (float)goodMatches.total()/tKeyPoints.total();
         Log.i(TAG, "Confidence: \t" + confidence);
         String strConf = "matched keypoints: \t" + goodMatches.total();
-        Imgproc.putText(imgMatches, strConf, new Point(200, 200), Core.FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 0, 255));
+        Imgproc.putText(imgMatches, strConf, new Point(20, 20), Core.FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 0, 255));
+        Imgproc.resize(imgMatches, imgMatches, mGray.size());
 
-        return mGray;
+        return imgMatches;
     }
 }
