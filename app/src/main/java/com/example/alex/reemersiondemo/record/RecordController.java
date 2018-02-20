@@ -24,10 +24,10 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 
 public class RecordController extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -37,7 +37,9 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private static final int                        kMinFeatures = 100;
     private static final int                        kMinRectLength = 80;
     private static final String                     TAG = "RecordController";
+    private static final String                     MODEL_PATH = "file:///android_asset/ssd_mobilenet_v1_android_export.pb";
 
+    private TensorFlowMultiBoxDetector              tfDetector;
     private CameraBridgeViewBase                    mOpenCvCameraView;
     private Mat                                     mRgba;
     private Mat                                     mGray;
@@ -88,6 +90,9 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         selectedIndex = -1;
         dataManager = DataManager.getInstance();
         boundRects = new ArrayList<>();
+        TensorFlowInferenceInterface tensorflow = new TensorFlowInferenceInterface(getAssets(), MODEL_PATH);
+        tfDetector = TensorFlowMultiBoxDetector.getInstance();
+        tfDetector.setTensorflow(tensorflow);
     }
 
 
@@ -144,22 +149,25 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
 
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
-        boundRects = findRectangleOnObjects(mGray);
+        boundRects = tfDetector.recognizeImage(mRgba);
+//        boundRects = findRectangleOnObjects(mGray);
         detector.getFeatures(mRgba, mGray, objectKeypoints, descriptors);
         constructFeatureMap();
 
+        Scalar color = new Scalar(0,255,0);
         //draw rectangle
         for( int i = 0; i < boundRects.size(); i++ ) {
-            Scalar color = new Scalar(0,255,0);
             //            drawContours( frame, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, cv::Point() );
-            if (i < boundRects.size()) {
+            if (i < boundRects.size() && boundRects.get(i).height > 0) {
                 Imgproc.rectangle( mRgba, boundRects.get(i).tl(), boundRects.get(i).br(), color, 3);
             }
         }
         return mRgba;
     }
 
+    //Now I am using tensorflow to find rectrangle on objects //2018.02.19
     private ArrayList<Rect> findRectangleOnObjects(Mat frame) {
+
         ArrayList<Rect> boundRects = new ArrayList<>();
         Mat current = new Mat(mGray.size(),0);
 
