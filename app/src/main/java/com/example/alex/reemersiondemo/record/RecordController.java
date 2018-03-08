@@ -30,11 +30,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class RecordController extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
+public class RecordController extends Activity implements CameraBridgeViewBase.CvCameraViewListener2, OrientationManager.Listener {
 
     private static final int                        kMaxFeatures = 500;
     //selected area is useful only when features inside is more than kMinFeatures
-    private static final int                        kMinFeatures = 100;
+    private static final int                        kMinFeatures = 30;
     private static final int                        kMinRectLength = 80;
     private static final String                     TAG = "RecordController";
     private static final String                     MODEL_PATH = "file:///android_asset/ssd_mobilenet_v1_android_export.pb";
@@ -52,8 +52,13 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private MatOfKeyPoint                           ROIKeypoints;
     private Mat                                     ROIDescriptors;
     private Mat                                     tmpROIGray;
-    private FrameDetector                           detector;
+    private FeatureDetector detector;
     private DataManager                             dataManager;
+    private OrientationManager                      orientationManager;
+    private float                                   initialAzimuth = 0;
+    private float                                   initialRoll = 0;
+    private float                                   initialPitch = 0;
+    private boolean                                 refRecorded = false;        //whether reference object recorded
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -80,7 +85,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     };
 
     private void initialize() throws IOException {
-        detector = FrameDetector.getInstance();
+        detector = FeatureDetector.getInstance();
         objectKeypoints = new MatOfKeyPoint();
         descriptors = new Mat();
         featureList = new ArrayList<>();
@@ -93,6 +98,8 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         TensorFlowInferenceInterface tensorflow = new TensorFlowInferenceInterface(getAssets(), MODEL_PATH);
         tfDetector = TensorFlowMultiBoxDetector.getInstance();
         tfDetector.setTensorflow(tensorflow);
+        orientationManager = new OrientationManager(this);
+        orientationManager.startListening(this);
     }
 
 
@@ -132,6 +139,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
 
     public void onDestroy() {
         super.onDestroy();
+        orientationManager.stopListening();
         mOpenCvCameraView.disableView();
     }
 
@@ -143,6 +151,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     public void onCameraViewStopped() {
         mGray.release();
         mRgba.release();
+        orientationManager.stopListening();
     }
 
     public synchronized Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
@@ -175,12 +184,12 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         Imgproc.resize(current, current, new Size(106, 80), 0, 0, Imgproc.INTER_CUBIC);
         Imgproc.resize(current, current, new Size(mGray.width(), mGray.height()));
 
-        Mat thresoldOutput = new Mat();
+        Mat thresholdOutput = new Mat();
         ArrayList<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
         int thresh = 100;
-        Imgproc.threshold(current, thresoldOutput, thresh, 255, Imgproc.THRESH_BINARY);
-        Imgproc.findContours(thresoldOutput, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0,0));
+        Imgproc.threshold(current, thresholdOutput, thresh, 255, Imgproc.THRESH_BINARY);
+        Imgproc.findContours(thresholdOutput, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0,0));
 
         ArrayList<MatOfPoint2f> contoursPoly = new ArrayList<>(Collections.nCopies(contours.size(), new MatOfPoint2f()));
 
@@ -238,25 +247,57 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         for(int i=0; i < boundRects.size(); i++){
             Rect rect = boundRects.get(i);
             if(rect.contains(p)){
-                if (featureList.get(i).size() >= kMinFeatures) {
+                if (featureList.size() > i && featureList.get(i).size() >= kMinFeatures) {
                     selectedIndex = i;
                     ROI = new Mat(mRgba, boundRects.get(i).clone());
                     Imgproc.cvtColor(ROI, tmpROIGray, Imgproc.COLOR_BGRA2GRAY);
                     detector.getFeatures(ROI, tmpROIGray, ROIKeypoints, ROIDescriptors);
+
+                    //if this is target object
+                    //@TODO: target object may not need to get key points?
+                    if (refRecorded) {
+                        dataManager.storeTargetData(tmpROIGray, ROIKeypoints, ROIDescriptors);
+                        //store the angle of target relative to reference object
+                        dataManager.storeRelativeAngle(
+                                orientationManager.getAzimuth()-initialAzimuth,
+                                orientationManager.getRoll() - initialRoll,
+                                orientationManager.getPitch() - initialPitch
+                        );
+                        orientationManager.stopListening();
+                        Toast.makeText(this, "Target Recorded!"
+                                + "\n" + dataManager.getAzimuth()
+                                + "\n" + dataManager.getPitch()
+                                + "\n" + dataManager.getRoll(),
+                                Toast.LENGTH_SHORT).show();
+                        finish();
+                        return true;
+                    }
+
+                    dataManager.storeRefData(tmpROIGray, ROIKeypoints, ROIDescriptors);
+                    initialAzimuth = orientationManager.getAzimuth();
+                    initialRoll = orientationManager.getRoll();
+                    initialPitch = orientationManager.getPitch();
+                    refRecorded = true;
 
                     Toast.makeText(this, "Rect:" + rect.x + "\t"
                                     + rect.y + "\t"
                                     + rect.width + "\t"
                                     + rect.height + "\t"
                                     + "features:\t"
-                                    + featureList.get(i).size(),
+                                    + featureList.get(i).size() +"\nPlease take shot of target object now",
                             Toast.LENGTH_SHORT).show();
-                    dataManager.storeNecessaryData(tmpROIGray, ROIKeypoints, ROIDescriptors);
-                    finish();
+
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    @Override
+    public void onOrientationChanged(float azimuth, float pitch, float roll) {
+//        System.out.println("pitch:\t" + pitch + "\troll:\t" + roll);
+
+        Log.e(TAG,"azimuth:\t" + azimuth + "\tpitch:\t" + pitch + "\troll:\t" + roll);
     }
 }

@@ -5,12 +5,10 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Scalar;
 import org.opencv.features2d.FastFeatureDetector;
-import org.opencv.features2d.Feature2D;
 import org.opencv.features2d.Features2d;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.xfeatures2d.SURF;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -19,19 +17,19 @@ import java.util.List;
  * Created by alex on 1/27/18.
  */
 
-public class FrameDetector {
+public class FeatureDetector {
     private static final int                        kMaxFeatures = 200;
 
     private FastFeatureDetector     FAST;
     private SURF                    surf;
 
-    private static final FrameDetector ourInstance = new FrameDetector();
+    private static final FeatureDetector ourInstance = new FeatureDetector();
 
-    public static FrameDetector getInstance() {
+    public static FeatureDetector getInstance() {
         return ourInstance;
     }
 
-    private FrameDetector() {
+    private FeatureDetector() {
         FAST = FastFeatureDetector.create();
         surf = SURF.create();
         surf.setHessianThreshold(400);

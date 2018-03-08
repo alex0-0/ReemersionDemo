@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * Created by alex on 1/28/18.
  */
 
-public class FrameMatcher {
+public class FeatureMatcher {
     static private final double kConfidence = 0.99;
     static private final double kDistance = 3.0;
     static private final double kRatio = 0.7;
@@ -21,13 +21,13 @@ public class FrameMatcher {
 
     private DescriptorMatcher BFMatcher;
 
-    private static final FrameMatcher ourInstance = new FrameMatcher();
+    private static final FeatureMatcher ourInstance = new FeatureMatcher();
 
-    public static FrameMatcher getInstance() {
+    public static FeatureMatcher getInstance() {
         return ourInstance;
     }
 
-    private FrameMatcher() {
+    private FeatureMatcher() {
         BFMatcher = DescriptorMatcher.create("BruteForce");
     }
 
@@ -40,7 +40,6 @@ public class FrameMatcher {
 
         ratioTest(matches1);
         ratioTest(matches2);
-//        return matches1.get(0);
 
         MatOfDMatch symMatches = symmetryTest(matches1, matches2);
         MatOfDMatch ransacMatches = new MatOfDMatch();

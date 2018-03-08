@@ -7,7 +7,7 @@ import android.view.WindowManager;
 
 import com.example.alex.reemersiondemo.DataManager;
 import com.example.alex.reemersiondemo.R;
-import com.example.alex.reemersiondemo.record.FrameDetector;
+import com.example.alex.reemersiondemo.record.FeatureDetector;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -15,7 +15,6 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Point;
@@ -32,8 +31,8 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
     private CameraBridgeViewBase                    mOpenCvCameraView;
     private Mat                                     mRgba;
     private Mat                                     mGray;
-    private FrameDetector                           detector;
-    private FrameMatcher                            matcher;
+    private FeatureDetector detector;
+    private FeatureMatcher matcher;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -61,8 +60,8 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
 
     private void initialize() throws IOException {
         mOpenCvCameraView.enableView();
-        detector = FrameDetector.getInstance();
-        matcher = FrameMatcher.getInstance();
+        detector = FeatureDetector.getInstance();
+        matcher = FeatureMatcher.getInstance();
     }
 
 
@@ -116,16 +115,16 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
 
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         //if there is no record data
-        if (DataManager.getInstance().getTemplateImg() == null)
+        if (DataManager.getInstance().getRefTemplateImg() == null)
             return inputFrame.rgba();
 
         mRgba = inputFrame.rgba();
         mGray = inputFrame.gray();
         MatOfKeyPoint keyPoints = new MatOfKeyPoint();
         Mat descriptors = new Mat();
-        Mat tDescriptors = DataManager.getInstance().getDescriptors();          //template descriptors
-        MatOfKeyPoint tKeyPoints = DataManager.getInstance().getKeyPoints();    //template keypoints
-        Mat tGray = DataManager.getInstance().getTemplateImg();                 //template image
+        Mat tDescriptors = DataManager.getInstance().getRefDescriptors();          //template descriptors
+        MatOfKeyPoint tKeyPoints = DataManager.getInstance().getRefKeyPoints();    //template keypoints
+        Mat tGray = DataManager.getInstance().getRefTemplateImg();                 //template image
         MatOfDMatch goodMatches = new MatOfDMatch();
         Mat imgMatches = new Mat();
 
