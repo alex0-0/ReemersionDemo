@@ -27,12 +27,21 @@ import java.io.IOException;
 public class ReemergeController extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     private static final String TAG = "ReemergeController";
-    
+    private static final float  CRITERION = 0.55f;      //judge whether images matched
+
     private CameraBridgeViewBase                    mOpenCvCameraView;
     private Mat                                     mRgba;
     private Mat                                     mGray;
     private FeatureDetector detector;
     private FeatureMatcher matcher;
+    private Mat refDescriptors;
+    private MatOfKeyPoint refKeyPoints;
+    private Mat refGray;
+    private Mat targetDescriptors;
+    private MatOfKeyPoint targetKeyPoints;
+    private Mat targetGray;
+    private boolean isSeekingRef;
+    private UserGuider userGuider;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -62,6 +71,13 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
         mOpenCvCameraView.enableView();
         detector = FeatureDetector.getInstance();
         matcher = FeatureMatcher.getInstance();
+        refDescriptors = DataManager.getInstance().getRefDescriptors();
+        refKeyPoints = DataManager.getInstance().getRefKeyPoints();
+        refGray = DataManager.getInstance().getRefTemplateImg();
+        targetDescriptors = DataManager.getInstance().getTargetDescriptors();
+        targetKeyPoints = DataManager.getInstance().getTargetKeyPoints();
+        targetGray = DataManager.getInstance().getTargetTemplateImg();
+        isSeekingRef = true;
     }
 
 
@@ -122,24 +138,39 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
         mGray = inputFrame.gray();
         MatOfKeyPoint keyPoints = new MatOfKeyPoint();
         Mat descriptors = new Mat();
-        Mat tDescriptors = DataManager.getInstance().getRefDescriptors();          //template descriptors
-        MatOfKeyPoint tKeyPoints = DataManager.getInstance().getRefKeyPoints();    //template keypoints
-        Mat tGray = DataManager.getInstance().getRefTemplateImg();                 //template image
         MatOfDMatch goodMatches = new MatOfDMatch();
         Mat imgMatches = new Mat();
+        float confidence = 0;
 
         detector.getFeatures(mRgba, mGray, keyPoints, descriptors);
         if (descriptors.elemSize() > 0) {
-            goodMatches = matcher.matchFeatureImage(mGray, descriptors, tDescriptors, keyPoints, tKeyPoints);
-            //TODO: MatOfByte may have problem, check it and reduce the number of keypoints
+            if (isSeekingRef) {
+                goodMatches = matcher.matchFeatureImage(mGray, descriptors, refDescriptors, keyPoints, refKeyPoints);
+                //TODO: MatOfByte may have problem, check it and reduce the number of keypoints
 //            Features2d.drawMatches(mGray, keyPoints, tGray, tKeyPoints, goodMatches, mGray, Scalar.all(-1), Scalar.all(-1), new MatOfByte(), Features2d.NOT_DRAW_SINGLE_POINTS);
-            Features2d.drawMatches(mGray, keyPoints, tGray, tKeyPoints, goodMatches, imgMatches);
+                Features2d.drawMatches(mGray, keyPoints, refGray, refKeyPoints, goodMatches, imgMatches);
+                confidence = (float)goodMatches.total()/refKeyPoints.total();
+                if (confidence > CRITERION)
+                    isSeekingRef = false;
+            }
+            else {//seeking target
+                if (userGuider == null) {
+                    userGuider = new UserGuider();
+                    userGuider.startGuide(this);
+                }
+                goodMatches = matcher.matchFeatureImage(mGray, descriptors, targetDescriptors, keyPoints, targetKeyPoints);
+                //TODO: MatOfByte may have problem, check it and reduce the number of keypoints
+                Features2d.drawMatches(mGray, keyPoints, targetGray, targetKeyPoints, goodMatches, imgMatches);
+                confidence = (float)goodMatches.total()/targetKeyPoints.total();
+
+                String bs = (confidence > CRITERION)?"BINGO!!!" : userGuider.getGuidence();
+                Imgproc.putText(imgMatches, bs, new Point(60,60), Core.FONT_HERSHEY_PLAIN, 3.0, new Scalar(255, 0, 0));
+            }
         }
 
-        float confidence = (float)goodMatches.total()/tKeyPoints.total();
         Log.i(TAG, "Confidence: \t" + confidence);
-        String strConf = "matched keypoints: \t" + goodMatches.total();
-        Imgproc.putText(imgMatches, strConf, new Point(20, 20), Core.FONT_HERSHEY_PLAIN, 1.0, new Scalar(0, 0, 255));
+        String strConf = "matched keypoints: \t" + goodMatches.total() + "conf:\t" + confidence;
+        Imgproc.putText(imgMatches, strConf, new Point(20, 20), Core.FONT_HERSHEY_PLAIN, 2.0, new Scalar(255, 0, 0));
         Imgproc.resize(imgMatches, imgMatches, mGray.size());
 
         return imgMatches;

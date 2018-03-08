@@ -8,6 +8,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.example.alex.reemersiondemo.DataManager;
+import com.example.alex.reemersiondemo.OrientationManager;
 import com.example.alex.reemersiondemo.R;
 
 import org.opencv.android.BaseLoaderCallback;

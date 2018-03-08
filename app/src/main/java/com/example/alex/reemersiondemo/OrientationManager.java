@@ -1,4 +1,4 @@
-package com.example.alex.reemersiondemo.record;
+package com.example.alex.reemersiondemo;
 
 /**
  * Created by alex on 3/6/18.

@@ -36,20 +36,20 @@ public class FeatureDetector {
     }
 
     public boolean getFeatures(Mat inputFrame, Mat gray, MatOfKeyPoint keyPoints, Mat descriptors) {
-        FAST.detect(gray, keyPoints);
-        //too many features cause poor performance on mobile
-        if (keyPoints.total() > kMaxFeatures) {
-            List<KeyPoint> listOfKeyPoints = keyPoints.toList();
-            Collections.sort(listOfKeyPoints, new Comparator<KeyPoint>() {
-                @Override
-                public int compare(KeyPoint o1, KeyPoint o2) {
-                    return (int) (o2.response - o1.response);
-                }
-            });
-            keyPoints.fromList(listOfKeyPoints.subList(0, kMaxFeatures));
-        }
-//        surf.detectAndCompute(gray, new Mat(), keyPoints, descriptors);
-        surf.compute(gray, keyPoints, descriptors);
+//        FAST.detect(gray, keyPoints);
+//        //too many features cause poor performance on mobile
+//        if (keyPoints.total() > kMaxFeatures) {
+//            List<KeyPoint> listOfKeyPoints = keyPoints.toList();
+//            Collections.sort(listOfKeyPoints, new Comparator<KeyPoint>() {
+//                @Override
+//                public int compare(KeyPoint o1, KeyPoint o2) {
+//                    return (int) (o2.response - o1.response);
+//                }
+//            });
+//            keyPoints.fromList(listOfKeyPoints.subList(0, kMaxFeatures));
+//        }
+        surf.detectAndCompute(gray, new Mat(), keyPoints, descriptors);
+//        surf.compute(gray, keyPoints, descriptors);
 
         Mat t = new Mat();
         Imgproc.cvtColor(inputFrame, t, Imgproc.COLOR_BGRA2BGR);
