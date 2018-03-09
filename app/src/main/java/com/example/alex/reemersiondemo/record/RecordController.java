@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -101,6 +102,13 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         tfDetector.setTensorflow(tensorflow);
         orientationManager = new OrientationManager(this);
         orientationManager.startListening(this);
+        mOpenCvCameraView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                handleTouch(event);
+                return false;
+            }
+        });
     }
 
 
@@ -229,16 +237,17 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
             }
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
+    private boolean handleTouch(MotionEvent event) {
         int touchAction = event.getActionMasked();
         double xLocation=-1, yLocation=-1;
+        double xOffset = (mOpenCvCameraView.getWidth() - mRgba.cols()) / 2;
+        double yOffset = (mOpenCvCameraView.getHeight() - mRgba.rows()) / 2;
         switch (touchAction) {
             case MotionEvent.ACTION_DOWN:
 //                android.graphics.Point size = new android.graphics.Point();
 //                getWindowManager().getDefaultDisplay().getSize(size);
-                xLocation =  event.getX();// * 640 / size.x;
-                yLocation =  event.getY();// * 480 / size.y;
+                xLocation =  event.getX() - xOffset;
+                yLocation =  event.getY() - yOffset;
                 break;
         }
 
@@ -260,7 +269,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                         dataManager.storeTargetData(tmpROIGray, ROIKeypoints, ROIDescriptors);
                         //store the angle of target relative to reference object
                         dataManager.storeRelativeAngle(
-                                orientationManager.getAzimuth()-initialAzimuth,
+                                orientationManager.getAzimuth() - initialAzimuth,
                                 orientationManager.getRoll() - initialRoll,
                                 orientationManager.getPitch() - initialPitch
                         );

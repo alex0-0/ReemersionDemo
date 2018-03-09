@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.example.alex.reemersiondemo.DataManager;
 import com.example.alex.reemersiondemo.R;
@@ -165,6 +166,11 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
 
                 String bs = (confidence > CRITERION)?"BINGO!!!" : userGuider.getGuidence();
                 Imgproc.putText(imgMatches, bs, new Point(60,60), Core.FONT_HERSHEY_PLAIN, 3.0, new Scalar(255, 0, 0));
+                if (userGuider.getGuidence().length() == 0) {
+                    userGuider.stopGuide();
+                    Toast.makeText(this, "Target Founded! Angle Correct", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
             }
         }
 
