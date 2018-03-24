@@ -42,7 +42,10 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
     private MatOfKeyPoint targetKeyPoints;
     private Mat targetGray;
     private boolean isSeekingRef;
-    private UserGuider userGuider;
+    private UserGuider userGuider;      //give guidance to user after finding reference object
+    private boolean onProcessing;       //judge if the computation of matching is running in background thread
+    private MatOfDMatch matches;
+    private MatOfKeyPoint keypoints;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -51,6 +54,7 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
                 case LoaderCallbackInterface.SUCCESS: {
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
+                    mOpenCvCameraView.enableFpsMeter();
                     try {
                         initialize();
 
@@ -79,6 +83,8 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
         targetKeyPoints = DataManager.getInstance().getTargetKeyPoints();
         targetGray = DataManager.getInstance().getTargetTemplateImg();
         isSeekingRef = true;
+        keypoints = new MatOfKeyPoint();
+        matches = new MatOfDMatch();
     }
 
 
@@ -98,8 +104,10 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
     public void onPause()
     {
         super.onPause();
-        if (mOpenCvCameraView != null)
+        if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
+            mOpenCvCameraView.disableFpsMeter();
+        }
     }
 
     @Override
@@ -118,6 +126,7 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
     public void onDestroy() {
         super.onDestroy();
         mOpenCvCameraView.disableView();
+        mOpenCvCameraView.disableFpsMeter();
     }
 
     public void onCameraViewStarted(int width, int height) {
@@ -130,55 +139,68 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
         mRgba.release();
     }
 
+    //default opencv camera callback, process frame
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         //if there is no record data
         if (DataManager.getInstance().getRefTemplateImg() == null)
             return inputFrame.rgba();
 
-        mRgba = inputFrame.rgba();
-        mGray = inputFrame.gray();
-        MatOfKeyPoint keyPoints = new MatOfKeyPoint();
-        Mat descriptors = new Mat();
-        MatOfDMatch goodMatches = new MatOfDMatch();
+        if (!onProcessing) {
+            //set flag indicating the computation of matching is on
+            onProcessing = true;
+
+            mRgba = inputFrame.rgba();
+            mGray = inputFrame.gray();
+
+            Mat refD = (isSeekingRef)? refDescriptors : targetDescriptors;
+            MatOfKeyPoint refK = (isSeekingRef)? refKeyPoints : targetKeyPoints;
+
+            //run relative computation in background thread
+            final FeatureMatchTask fmTask = new FeatureMatchTask();
+            fmTask.execute(mRgba, mGray, detector, matcher, refD, refK, new Runnable() {
+                @Override
+                public void run() {
+                    matches = fmTask.getMatches();
+                    keypoints = fmTask.getKeypoints();
+                    onProcessing = false;
+                }
+            });
+        }
+
         Mat imgMatches = new Mat();
-        float confidence = 0;
+        drawOnFrame(imgMatches);
+        return imgMatches;
+    }
 
-        detector.getFeatures(mRgba, mGray, keyPoints, descriptors);
-        if (descriptors.elemSize() > 0) {
-            if (isSeekingRef) {
-                goodMatches = matcher.matchFeatureImage(mGray, descriptors, refDescriptors, keyPoints, refKeyPoints);
-                //TODO: MatOfByte may have problem, check it and reduce the number of keypoints
-//            Features2d.drawMatches(mGray, keyPoints, tGray, tKeyPoints, goodMatches, mGray, Scalar.all(-1), Scalar.all(-1), new MatOfByte(), Features2d.NOT_DRAW_SINGLE_POINTS);
-                Features2d.drawMatches(mGray, keyPoints, refGray, refKeyPoints, goodMatches, imgMatches);
-                confidence = (float)goodMatches.total()/refKeyPoints.total();
-                if (confidence > CRITERION)
-                    isSeekingRef = false;
+    //draw matched features on frame
+    private void drawOnFrame(Mat frame) {
+
+        float confidence;
+        if (isSeekingRef) {
+            Features2d.drawMatches(mGray, keypoints, refGray, refKeyPoints, matches, frame);
+            confidence = (float)matches.total()/refKeyPoints.total();
+            if (confidence > CRITERION)
+                isSeekingRef = false;
+        }
+        else {
+            if (userGuider == null) {
+                userGuider = new UserGuider();
+                userGuider.startGuide(this);
             }
-            else {//seeking target
-                if (userGuider == null) {
-                    userGuider = new UserGuider();
-                    userGuider.startGuide(this);
-                }
-                goodMatches = matcher.matchFeatureImage(mGray, descriptors, targetDescriptors, keyPoints, targetKeyPoints);
-                //TODO: MatOfByte may have problem, check it and reduce the number of keypoints
-                Features2d.drawMatches(mGray, keyPoints, targetGray, targetKeyPoints, goodMatches, imgMatches);
-                confidence = (float)goodMatches.total()/targetKeyPoints.total();
-
-                String bs = (confidence > CRITERION)?"BINGO!!!" : userGuider.getGuidence();
-                Imgproc.putText(imgMatches, bs, new Point(60,60), Core.FONT_HERSHEY_PLAIN, 3.0, new Scalar(255, 0, 0));
-                if (userGuider.getGuidence().length() == 0) {
-                    userGuider.stopGuide();
-                    Toast.makeText(this, "Target Founded! Angle Correct", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
+            Features2d.drawMatches(mGray, keypoints, targetGray, targetKeyPoints, matches, frame);
+            confidence = (float)matches.total()/targetKeyPoints.total();
+            String bs = (confidence > CRITERION)?"BINGO!!!" : userGuider.getGuidence();
+            Imgproc.putText(frame, bs, new Point(60,60), Core.FONT_HERSHEY_PLAIN, 3.0, new Scalar(255, 0, 0));
+            if (userGuider.getGuidence().length() == 0) {
+                userGuider.stopGuide();
+                Toast.makeText(this, "Target Founded! Angle Correct", Toast.LENGTH_SHORT).show();
+                finish();
             }
         }
 
-        Log.i(TAG, "Confidence: \t" + confidence);
-        String strConf = "matched keypoints: \t" + goodMatches.total() + "conf:\t" + confidence;
-        Imgproc.putText(imgMatches, strConf, new Point(20, 20), Core.FONT_HERSHEY_PLAIN, 2.0, new Scalar(255, 0, 0));
-        Imgproc.resize(imgMatches, imgMatches, mGray.size());
-
-        return imgMatches;
+        Log.i(TAG, "keypoints: \t" + keypoints.total());
+        String strConf = "matched keypoints: \t" + matches.total() + " conf:\t" + confidence;
+        Imgproc.putText(frame, strConf, new Point(20, 20), Core.FONT_HERSHEY_PLAIN, 2.0, new Scalar(255, 0, 0));
+        Imgproc.resize(frame, frame, mGray.size());
     }
 }

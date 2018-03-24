@@ -25,6 +25,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.features2d.Features2d;
 import org.opencv.imgproc.Imgproc;
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 
@@ -61,6 +62,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private float                                   initialRoll = 0;
     private float                                   initialPitch = 0;
     private boolean                                 refRecorded = false;        //whether reference object recorded
+    private boolean                                 onProcessing = false;
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -69,6 +71,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                 case LoaderCallbackInterface.SUCCESS: {
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
+                    mOpenCvCameraView.enableFpsMeter();
                     try {
                         initialize();
 
@@ -129,8 +132,10 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     public void onPause()
     {
         super.onPause();
-        if (mOpenCvCameraView != null)
+        if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
+            mOpenCvCameraView.disableFpsMeter();
+        }
     }
 
     @Override
@@ -150,6 +155,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         super.onDestroy();
         orientationManager.stopListening();
         mOpenCvCameraView.disableView();
+        mOpenCvCameraView.disableFpsMeter();
     }
 
     public void onCameraViewStarted(int width, int height) {
@@ -163,24 +169,50 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         orientationManager.stopListening();
     }
 
-    public synchronized Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+    //default opencv camera callback, process frame
+    public synchronized Mat onCameraFrame(final CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
 
-        mRgba = inputFrame.rgba();
-        mGray = inputFrame.gray();
-        boundRects = tfDetector.recognizeImage(mRgba);
-//        boundRects = findRectangleOnObjects(mGray);
-        detector.getFeatures(mRgba, mGray, objectKeypoints, descriptors);
-        constructFeatureMap();
+        if (!onProcessing) {
+            //necessary computation starts
+            onProcessing = true;
 
-        Scalar color = new Scalar(0,255,0);
-        //draw rectangle
-        for( int i = 0; i < boundRects.size(); i++ ) {
+            mRgba = inputFrame.rgba().clone();      //to remove drawn feature point on the picture.
+            mGray = inputFrame.gray();
+            //AsyncTask, run computation in background thread
+            final FeatureDetectTask fpTask = new FeatureDetectTask();
+            //Callback after computation ends and pass necessary parameters
+            fpTask.execute(mRgba, mGray, detector, new Runnable() {
+                @Override
+                public void run() {
+                    boundRects = fpTask.getBoundRects();
+                    descriptors = fpTask.getDescriptors();
+                    objectKeypoints = fpTask.getObjectKeypoints();
+                    constructFeatureMap();
+                    //computation ends
+                    onProcessing = false;
+                }
+            });
+        }
+        //Use key points extracted from last computed frame to draw boundaries and features on current frame
+        //Though time lag exists, but the FPS can be much higher
+        Mat rgba = inputFrame.rgba();
+        drawOnFrame(rgba);
+        return rgba;
+    }
+
+    //Draw feature points and object boundaries on current frame
+    private void drawOnFrame(Mat frame) {
+        Scalar color = new Scalar(0, 255, 0);
+        for (int i = 0; i < boundRects.size(); i++) {
             //            drawContours( frame, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, cv::Point() );
             if (i < boundRects.size() && boundRects.get(i).height > 0) {
-                Imgproc.rectangle( mRgba, boundRects.get(i).tl(), boundRects.get(i).br(), color, 3);
+                Imgproc.rectangle(frame, boundRects.get(i).tl(), boundRects.get(i).br(), color, 3);
             }
         }
-        return mRgba;
+        Mat t = new Mat();
+        Imgproc.cvtColor(frame, t, Imgproc.COLOR_BGRA2BGR);
+        Features2d.drawKeypoints(t, objectKeypoints, t, Scalar.all(-1), Features2d.DRAW_RICH_KEYPOINTS);
+        Imgproc.cvtColor(t, frame, Imgproc.COLOR_BGR2BGRA);
     }
 
     //Now I am using tensorflow to find rectrangle on objects //2018.02.19
@@ -213,6 +245,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         return boundRects;
     }
 
+    //store feature points laying inside every rectangle
     private void constructFeatureMap() {
             if (featureList.size() > 0) {
                 featureList.clear();
@@ -240,12 +273,11 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private boolean handleTouch(MotionEvent event) {
         int touchAction = event.getActionMasked();
         double xLocation=-1, yLocation=-1;
+        //the width and height of camera view and the w and h of picture taken by camera can be different
         double xOffset = (mOpenCvCameraView.getWidth() - mRgba.cols()) / 2;
         double yOffset = (mOpenCvCameraView.getHeight() - mRgba.rows()) / 2;
         switch (touchAction) {
             case MotionEvent.ACTION_DOWN:
-//                android.graphics.Point size = new android.graphics.Point();
-//                getWindowManager().getDefaultDisplay().getSize(size);
                 xLocation =  event.getX() - xOffset;
                 yLocation =  event.getY() - yOffset;
                 break;

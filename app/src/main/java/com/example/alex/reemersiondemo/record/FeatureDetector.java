@@ -9,6 +9,10 @@ import org.opencv.features2d.Features2d;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.xfeatures2d.SURF;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 /**
  * Created by alex on 1/27/18.
  */
@@ -46,12 +50,6 @@ public class FeatureDetector {
 //        }
         surf.detectAndCompute(gray, new Mat(), keyPoints, descriptors);
 //        surf.compute(gray, keyPoints, descriptors);
-
-        Mat t = new Mat();
-        Imgproc.cvtColor(inputFrame, t, Imgproc.COLOR_BGRA2BGR);
-        Features2d.drawKeypoints(t, keyPoints, t, Scalar.all(-1), Features2d.DRAW_RICH_KEYPOINTS);
-
-        Imgproc.cvtColor(t, inputFrame, Imgproc.COLOR_BGR2BGRA);
 
         return true;
     }
