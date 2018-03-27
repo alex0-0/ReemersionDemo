@@ -89,6 +89,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         }
     };
 
+    //initialize necessary variables after beginning taking video
     private void initialize() throws IOException {
         detector = FeatureDetector.getInstance();
         objectKeypoints = new MatOfKeyPoint();
@@ -271,6 +272,8 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     }
 
     private boolean handleTouch(MotionEvent event) {
+
+        //calculate the accurate touch position
         int touchAction = event.getActionMasked();
         double xLocation=-1, yLocation=-1;
         //the width and height of camera view and the w and h of picture taken by camera can be different
@@ -288,15 +291,17 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
 
         for(int i=0; i < boundRects.size(); i++){
             Rect rect = boundRects.get(i);
+            //check if the touch position is inside a rectangle
             if(rect.contains(p)){
+                //check whether the number of features inside that rectangle is higher than threshold
                 if (featureList.size() > i && featureList.get(i).size() >= kMinFeatures) {
                     selectedIndex = i;
+                    //crop the region of interest
                     ROI = new Mat(mRgba, boundRects.get(i).clone());
                     Imgproc.cvtColor(ROI, tmpROIGray, Imgproc.COLOR_BGRA2GRAY);
                     detector.getFeatures(ROI, tmpROIGray, ROIKeypoints, ROIDescriptors);
 
                     //if this is target object
-                    //@TODO: target object may not need to get key points?
                     if (refRecorded) {
                         dataManager.storeTargetData(tmpROIGray, ROIKeypoints, ROIDescriptors);
                         //store the angle of target relative to reference object
@@ -311,16 +316,20 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                                 + "\n" + dataManager.getPitch()
                                 + "\n" + dataManager.getRoll(),
                                 Toast.LENGTH_SHORT).show();
+
+                        //exit to the main screen
                         finish();
                         return true;
                     }
 
+                    //if this is reference object
                     dataManager.storeRefData(tmpROIGray, ROIKeypoints, ROIDescriptors);
                     initialAzimuth = orientationManager.getAzimuth();
                     initialRoll = orientationManager.getRoll();
                     initialPitch = orientationManager.getPitch();
                     refRecorded = true;
 
+                    //remind user to choose target object
                     Toast.makeText(this, "Rect:" + rect.x + "\t"
                                     + rect.y + "\t"
                                     + rect.width + "\t"
