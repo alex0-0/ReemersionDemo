@@ -1,20 +1,26 @@
 package com.example.alex.reemersiondemo.reemerge;
 
+import org.opencv.calib3d.Calib3d;
 import org.opencv.core.DMatch;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FlannBasedMatcher;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by alex on 1/28/18.
  */
 
 public class FeatureMatcher {
-    static private final double kConfidence = 0.99;
-    static private final double kDistance = 3.0;
+//    static private final double kConfidence = 0.99;
+//    static private final double kDistance = 3.0;
     static private final double kRatio = 0.7;
 
     private FlannBasedMatcher flannMatcher;
@@ -44,19 +50,17 @@ public class FeatureMatcher {
         MatOfDMatch symMatches = symmetryTest(matches1, matches2);
         MatOfDMatch ransacMatches = new MatOfDMatch();
 
-//        if (symMatches.total() > 20) {
-//            Mat fundemental = ransacTest(symMatches, keypoints1, keypoints2, ransacMatches);
-//            return ransacMatches;
-//        }
+        if (symMatches.total() > 20) {
+            ransacTest(symMatches, keypoints1, keypoints2, ransacMatches);
+            return ransacMatches;
+        }
         return symMatches;
     }
 
 
 
 //if the two best matches are relatively close in distance,
-
 //then there exists a possibility that we make an error if we select one or the other.
-
 private int ratioTest(ArrayList<MatOfDMatch> matches) {
         ArrayList<MatOfDMatch> updatedMatches = new ArrayList<>();
         int removed=0;
@@ -112,120 +116,42 @@ private int ratioTest(ArrayList<MatOfDMatch> matches) {
         return symMatches;
     }
 
+    //refer to: https://en.wikipedia.org/wiki/Random_sample_consensus
 // Identify good matches using RANSAC
-// Return fundemental matrix
-    private Mat ransacTest(MatOfDMatch matches,
+    private void ransacTest(MatOfDMatch matches,
                            MatOfKeyPoint keypoints1,
                            MatOfKeyPoint keypoints2,
                            MatOfDMatch outMatches)
     {
-        return matches;
-//        // Convert keypoints into Point2f
-//        ArrayList<Point> points1 = new ArrayList<>();
-//        ArrayList<Point> points2 = new ArrayList<>();
-//        DMatch[] matchList = matches.toArray();
-//
-//        for (int i = 0; i < matches.total(); i++) {
-//            DMatch it = matchList[i];
-//            KeyPoint[] kp1 = keypoints1.toArray();
-//            KeyPoint[] kp2 = keypoints2.toArray();
-//        // Get the position of left keypoints
-//        double x= kp1[it.queryIdx].pt.x;
-//        double y= kp1[it.queryIdx].pt.y;
-//        points1.add(new Point(x,y));
-//
-//        // Get the position of right keypoints
-//        x= kp2[it.trainIdx].pt.x;
-//        y= kp2[it.trainIdx].pt.y;
-//        points2.add(new Point(x,y));
-//    }
-//        // Compute F matrix using RANSAC
-//        Mat inliers = new Mat();
-//        MatOfPoint2f p1 = new MatOfPoint2f();
-//        p1.fromList(points1);
-//        MatOfPoint2f p2= new MatOfPoint2f();
-//        p2.fromList(points2);
-//
-//        Mat fundemental = Calib3d.findFundamentalMat(
-//                p1,
-//                p2,
-//                Calib3d.FM_RANSAC,
-//                3.0,     // distance to epipolar line
-//                kConfidence,    // confidence probability
-//                inliers);
-//
-//        // extract the surviving (inliers) matches
-//
-//
-//        int[] itIn= inliers;
-//
-//        std::vector<cv::DMatch>::const_iterator
-//
-//            itM= matches.begin();
-//
-//        // for all matches
-//
-//        for (int i = 0;itIn!= inliers.end(); ++itIn, ++itM) {
-//
-//            if (*itIn) {
-//
-//                outMatches.push_back(*itM);
-//
-//            }
-//
-//        }
-//
-////    if (refineF) {
-//
-//        if (true) {
-//
-//            // The F matrix will be recomputed with
-//
-//            // all accepted matches
-//
-//            // Convert keypoints into Point2f
-//
-//            // for final F computation
-//
-//            points1.clear();
-//
-//            points2.clear();
-//
-//            for (std::vector<cv::DMatch>::
-//
-//            const_iterator it= outMatches.begin();
-//
-//            it!= outMatches.end(); ++it) {
-//
-//                // Get the position of left keypoints
-//
-//                float x= keypoints1[it->queryIdx].pt.x;
-//
-//                float y= keypoints1[it->queryIdx].pt.y;
-//
-//                points1.push_back(cv::Point2f(x,y));
-//
-//                // Get the position of right keypoints
-//
-//                x= keypoints2[it->trainIdx].pt.x;
-//
-//                y= keypoints2[it->trainIdx].pt.y;
-//
-//                points2.push_back(cv::Point2f(x,y));
-//
-//            }
-//
-//            // Compute 8-point F from all accepted matches
-//
-//            fundemental= cv::findFundamentalMat(
-//
-//                    cv::Mat(points1),cv::Mat(points2), // matches
-//
-//                    CV_FM_8POINT); // 8-point method
-//
-//        }
-//        return fundemental;
-    }
+//        return matches;
+        // get keypoint coordinates of good matches to find homography and remove outliers using ransac
+        List<Point> pts1 = new ArrayList<Point>();
+        List<Point> pts2 = new ArrayList<Point>();
+        LinkedList<DMatch> good_matches = new LinkedList<>(Arrays.asList(matches.toArray()));
+        for(int i = 0; i<good_matches.size(); i++){
+            pts1.add(keypoints1.toList().get(good_matches.get(i).queryIdx).pt);
+            pts2.add(keypoints2.toList().get(good_matches.get(i).trainIdx).pt);
+        }
 
+        // convertion of data types - there is maybe a more beautiful way
+        Mat outputMask = new Mat();
+        MatOfPoint2f pts1Mat = new MatOfPoint2f();
+        pts1Mat.fromList(pts1);
+        MatOfPoint2f pts2Mat = new MatOfPoint2f();
+        pts2Mat.fromList(pts2);
+
+        // Find homography - here just used to perform match filtering with RANSAC, but could be used to e.g. stitch images
+        // the smaller the allowed reprojection error (here 15), the more matches are filtered
+        Mat Homog = Calib3d.findHomography(pts1Mat, pts2Mat, Calib3d.RANSAC, 15, outputMask, 2000, 0.995);
+
+        // outputMask contains zeros and ones indicating which matches are filtered
+        LinkedList<DMatch> better_matches = new LinkedList<DMatch>();
+        for (int i = 0; i < good_matches.size(); i++) {
+            if (outputMask.get(i, 0)[0] != 0.0) {
+                better_matches.add(good_matches.get(i));
+            }
+        }
+        outMatches.fromList(better_matches);
+    }
 
 }

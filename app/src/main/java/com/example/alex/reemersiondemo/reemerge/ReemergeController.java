@@ -28,7 +28,7 @@ import java.io.IOException;
 public class ReemergeController extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     private static final String TAG = "ReemergeController";
-    private static final float  CRITERION = 0.55f;      //judge whether images matched
+    private static final float  CRITERION = 0.3f;      //judge whether images matched //with RANSAC, 0.30 should be enough, if without, 0.55.
 
     private CameraBridgeViewBase                    mOpenCvCameraView;
     private Mat                                     mRgba;
