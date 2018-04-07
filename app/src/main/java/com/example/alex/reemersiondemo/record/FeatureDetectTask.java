@@ -38,7 +38,7 @@ public class FeatureDetectTask extends AsyncTask {
         FeatureDetector detector = (FeatureDetector) params[2];
         r = (Runnable)params[3];
         ArrayList<Rect> boundRects = tfDetector.recognizeImage(rgba);
-        detector.getFeatures(rgba, gray, objectKeypoints, descriptors);
+        detector.extractFeatures(rgba, gray, objectKeypoints, descriptors);
         this.boundRects = boundRects;
         return null;
     }

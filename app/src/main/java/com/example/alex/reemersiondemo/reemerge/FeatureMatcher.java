@@ -37,7 +37,7 @@ public class FeatureMatcher {
         BFMatcher = DescriptorMatcher.create("BruteForce");
     }
 
-    public MatOfDMatch matchFeatureImage(Mat input, Mat queryDescriptor, Mat template, MatOfKeyPoint keypoints1, MatOfKeyPoint keypoints2) {
+    public MatOfDMatch matchFeature(Mat input, Mat queryDescriptor, Mat template, MatOfKeyPoint keypoints1, MatOfKeyPoint keypoints2) {
         ArrayList<MatOfDMatch> matches1 = new ArrayList<>();
         ArrayList<MatOfDMatch>  matches2 = new ArrayList<>();
 

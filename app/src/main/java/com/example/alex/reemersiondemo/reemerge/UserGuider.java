@@ -20,7 +20,7 @@ public class UserGuider implements OrientationManager.Listener {
     private static final String TURNCLOCKWISE = "turn phone clockwise";
     private static final String TURNCOUNTERCLOCKWISE = "turn phone counterclockwise";
 
-    private String guidence;
+    private String guidence = "";
 
     private float initialAzimuth = 0;
     private float initialRoll = 0;

@@ -299,7 +299,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                     //crop the region of interest
                     ROI = new Mat(mRgba, boundRects.get(i).clone());
                     Imgproc.cvtColor(ROI, tmpROIGray, Imgproc.COLOR_BGRA2GRAY);
-                    detector.getFeatures(ROI, tmpROIGray, ROIKeypoints, ROIDescriptors);
+                    detector.extractFeatures(ROI, tmpROIGray, ROIKeypoints, ROIDescriptors);
 
                     //if this is target object
                     if (refRecorded) {

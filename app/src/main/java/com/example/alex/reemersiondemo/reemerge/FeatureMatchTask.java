@@ -39,9 +39,9 @@ public class FeatureMatchTask extends AsyncTask {
         keypoints = new MatOfKeyPoint();
         Mat descriptors = new Mat();
 
-        detector.getFeatures(rgba, gray, keypoints, descriptors);
+        detector.extractFeatures(rgba, gray, keypoints, descriptors);
         if (descriptors.elemSize() > 0) {
-            matches = matcher.matchFeatureImage(gray, descriptors, refDescriptors, keypoints, refKeyPoints);
+            matches = matcher.matchFeature(gray, descriptors, refDescriptors, keypoints, refKeyPoints);
         }
 
         return null;
