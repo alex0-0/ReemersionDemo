@@ -37,12 +37,14 @@ public class FeatureMatcher {
         BFMatcher = DescriptorMatcher.create("BruteForce");
     }
 
-    public MatOfDMatch matchFeature(Mat input, Mat queryDescriptor, Mat template, MatOfKeyPoint keypoints1, MatOfKeyPoint keypoints2) {
+    //keypoints1: keypoints of query image
+    //keypoints2: keypoints of template image
+    public MatOfDMatch matchFeature(Mat input, Mat queryDescriptor, Mat templateDescriptor, MatOfKeyPoint keypoints1, MatOfKeyPoint keypoints2) {
         ArrayList<MatOfDMatch> matches1 = new ArrayList<>();
         ArrayList<MatOfDMatch>  matches2 = new ArrayList<>();
 
-        BFMatcher.knnMatch(queryDescriptor, template, matches1, 2);
-        BFMatcher.knnMatch(template, queryDescriptor, matches2, 2);
+        BFMatcher.knnMatch(queryDescriptor, templateDescriptor, matches1, 2);
+        BFMatcher.knnMatch(templateDescriptor, queryDescriptor, matches2, 2);
 
         ratioTest(matches1);
         ratioTest(matches2);
@@ -125,8 +127,8 @@ private int ratioTest(ArrayList<MatOfDMatch> matches) {
     {
 //        return matches;
         // get keypoint coordinates of good matches to find homography and remove outliers using ransac
-        List<Point> pts1 = new ArrayList<Point>();
-        List<Point> pts2 = new ArrayList<Point>();
+        List<Point> pts1 = new ArrayList<>();
+        List<Point> pts2 = new ArrayList<>();
         LinkedList<DMatch> good_matches = new LinkedList<>(Arrays.asList(matches.toArray()));
         for(int i = 0; i<good_matches.size(); i++){
             pts1.add(keypoints1.toList().get(good_matches.get(i).queryIdx).pt);

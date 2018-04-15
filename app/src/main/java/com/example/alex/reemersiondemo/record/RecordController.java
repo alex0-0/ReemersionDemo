@@ -19,19 +19,15 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfKeyPoint;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.features2d.Features2d;
 import org.opencv.imgproc.Imgproc;
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class RecordController extends Activity implements CameraBridgeViewBase.CvCameraViewListener2, OrientationManager.Listener {
 
@@ -216,36 +212,6 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         Imgproc.cvtColor(t, frame, Imgproc.COLOR_BGR2BGRA);
     }
 
-    //Now I am using tensorflow to find rectrangle on objects //2018.02.19
-    private ArrayList<Rect> findRectangleOnObjects(Mat frame) {
-
-        ArrayList<Rect> boundRects = new ArrayList<>();
-        Mat current = new Mat(mGray.size(),0);
-
-        Imgproc.GaussianBlur(mGray, current, new Size(3,3),1);  //TODO: sigmaX is not sure, should test more
-        Imgproc.resize(current, current, new Size(106, 80), 0, 0, Imgproc.INTER_CUBIC);
-        Imgproc.resize(current, current, new Size(mGray.width(), mGray.height()));
-
-        Mat thresholdOutput = new Mat();
-        ArrayList<MatOfPoint> contours = new ArrayList<>();
-        Mat hierarchy = new Mat();
-        int thresh = 100;
-        Imgproc.threshold(current, thresholdOutput, thresh, 255, Imgproc.THRESH_BINARY);
-        Imgproc.findContours(thresholdOutput, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0,0));
-
-        ArrayList<MatOfPoint2f> contoursPoly = new ArrayList<>(Collections.nCopies(contours.size(), new MatOfPoint2f()));
-
-        for (int i = 0; i < contours.size(); i++) {
-            Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly.get(i), 3, true);
-            Rect tmpRect = Imgproc.boundingRect(contours.get(i));
-            if (tmpRect.height > kMinRectLength && tmpRect.width > kMinRectLength) {
-                boundRects.add(tmpRect);
-            }
-        }
-
-        return boundRects;
-    }
-
     //store feature points laying inside every rectangle
     private void constructFeatureMap() {
             if (featureList.size() > 0) {
@@ -299,7 +265,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                     //crop the region of interest
                     ROI = new Mat(mRgba, boundRects.get(i).clone());
                     Imgproc.cvtColor(ROI, tmpROIGray, Imgproc.COLOR_BGRA2GRAY);
-                    detector.extractFeatures(ROI, tmpROIGray, ROIKeypoints, ROIDescriptors);
+                    detector.extractFeatures(tmpROIGray, ROIKeypoints, ROIDescriptors);
 
                     //if this is target object
                     if (refRecorded) {

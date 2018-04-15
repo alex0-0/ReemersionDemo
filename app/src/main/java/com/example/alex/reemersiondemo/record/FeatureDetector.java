@@ -35,7 +35,7 @@ public class FeatureDetector {
         surf.setHessianThreshold(400);
     }
 
-    public boolean extractFeatures(Mat inputFrame, Mat gray, MatOfKeyPoint keyPoints, Mat descriptors) {
+    public boolean extractFeatures(Mat gray, MatOfKeyPoint keyPoints, Mat descriptors) {
 //        FAST.detect(gray, keyPoints);
 //        //too many features cause poor performance on mobile
 //        if (keyPoints.total() > kMaxFeatures) {

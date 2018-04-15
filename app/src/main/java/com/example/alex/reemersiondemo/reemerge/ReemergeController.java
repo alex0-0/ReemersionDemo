@@ -177,13 +177,16 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
 
         float confidence;
         if (isSeekingRef) {
+            //if the reference object is not found
             Features2d.drawMatches(mGray, keypoints, refGray, refKeyPoints, matches, frame);
             confidence = (float)matches.total()/refKeyPoints.total();
             if (confidence > CRITERION)
                 isSeekingRef = false;
         }
         else {
+            //if user are finding target object
             if (userGuider == null) {
+                //initiate user guider
                 userGuider = new UserGuider();
                 userGuider.startGuide(this);
             }

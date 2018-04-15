@@ -2,12 +2,12 @@ package com.example.alex.reemersiondemo;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.alex.reemersiondemo.imgmatching.PicMatching;
 import com.example.alex.reemersiondemo.record.RecordController;
 import com.example.alex.reemersiondemo.reemerge.ReemergeController;
 
@@ -27,7 +27,7 @@ public class MainActivity extends Activity {
 
         // Example of a call to a native method
         TextView tv = (TextView) findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
+        tv.setText("Choose the function you want");
     }
 
     public void record(View view) {
@@ -42,6 +42,13 @@ public class MainActivity extends Activity {
         Log.i(TAG, "reemerge activity starts");
 
         Intent intent = new Intent(this, ReemergeController.class);
+        startActivity(intent);
+    }
+
+    public void pictureDemo(View view) {
+        Log.i(TAG, "reemerge activity starts");
+
+        Intent intent = new Intent(this, PicMatching.class);
         startActivity(intent);
     }
 
