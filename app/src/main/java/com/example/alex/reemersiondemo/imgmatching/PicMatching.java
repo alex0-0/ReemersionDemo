@@ -59,7 +59,7 @@ public class PicMatching extends Activity {
         tfDetector.setTensorflow(tensorflow);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView parent, View v, int position, long id) {
-                if (position == 0)
+                if (position == 0 || !v.isShown())
                     return;
                 match(position);
             }

@@ -1,7 +1,10 @@
 package com.example.alex.reemersiondemo.reemerge;
 
+import android.util.Log;
+
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.DMatch;
+import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
@@ -11,8 +14,11 @@ import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FlannBasedMatcher;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by alex on 1/28/18.
@@ -22,6 +28,8 @@ public class FeatureMatcher {
 //    static private final double kConfidence = 0.99;
 //    static private final double kDistance = 3.0;
     static private final double kRatio = 0.7;
+    static double kTolerableDifference = 0.1;  //an custom number to determine whether two matches have spacial relation
+    static String TAG = "Feature Matcher";
 
     private FlannBasedMatcher flannMatcher;
 
@@ -59,8 +67,6 @@ public class FeatureMatcher {
         return symMatches;
     }
 
-
-
 //if the two best matches are relatively close in distance,
 //then there exists a possibility that we make an error if we select one or the other.
 private int ratioTest(ArrayList<MatOfDMatch> matches) {
@@ -85,8 +91,6 @@ private int ratioTest(ArrayList<MatOfDMatch> matches) {
 
         return removed;
     }
-
-
 
     private MatOfDMatch symmetryTest(ArrayList<MatOfDMatch> matches1, ArrayList<MatOfDMatch> matches2) {
 
@@ -154,6 +158,75 @@ private int ratioTest(ArrayList<MatOfDMatch> matches) {
             }
         }
         outMatches.fromList(better_matches);
+    }
+
+    /**
+     //By clustering matched key points in query image and template image respectively,
+     //if a spacial pattern of key points existed in both template and query image,
+     //return a bonus by ((the number of points in that pattern)^2 / (the number of key points in template image))
+     //arguments:
+     //     matches:    matched points
+     //     qKPs:       query key points
+     //     tKPs:       template key points
+     //return:  bonus confidence coming from clustering matched key points
+     **/
+    public double bonusConfidenceFromClusteringMatchedPoints(MatOfDMatch matches, MatOfKeyPoint qKPs, MatOfKeyPoint tKPs) {
+        double bonus = 0;
+        KeyPoint q[] = qKPs.toArray();
+        KeyPoint t[] = tKPs.toArray();
+        //TODO: traverse matched points, get ratio between the horizontal difference and vertical difference
+        LinkedList<DMatch> matchesList = new LinkedList<>(matches.toList());
+        Iterator<DMatch> i1 = matchesList.iterator();
+        while (i1.hasNext()) {
+            HashSet<DMatch> cluster = new HashSet<>();
+            cluster.add(i1.next());
+            i1.remove();
+
+            //iterate from present point to the end of the list to check if any point matches have similar spacial relation
+            if (i1.hasNext()) {
+                Iterator<DMatch> i2 = matchesList.iterator();
+                while (i2.hasNext()) {
+                    DMatch m = i2.next();
+                    if (hasSpatialRelation(cluster, m, q, t)) {
+                        cluster.add(m);
+                        i2.remove();
+                    }
+                }
+                int size = cluster.size();
+                bonus += (size > 1)? ((float)size * size / tKPs.total()) : 0;
+                //since the matches may be changed
+                i1 = matchesList.iterator();
+            }
+        }
+        return bonus;
+    }
+
+    //any match in set has relation with query match, return true
+    //qKPs is query key points, tKPs is template key points
+    boolean hasSpatialRelation(HashSet<DMatch> matches, DMatch queryMatch, KeyPoint[] qKPs, KeyPoint[] tKPs) {
+        Point qPoint = qKPs[queryMatch.queryIdx].pt;
+        Point tPoint = tKPs[queryMatch.trainIdx].pt;
+
+        Iterator<DMatch> i = matches.iterator();
+        while (i.hasNext()) {
+            DMatch m = i.next();
+            Point mQPoint = qKPs[m.queryIdx].pt;
+            Point mTPoint = tKPs[m.trainIdx].pt;
+
+            //compare in template image and query image the ratio of vertical differences and horizontal difference
+            double ratioInQueryImage = (qPoint.y - mQPoint.y) / (qPoint.x - mQPoint.x);
+            double ratioInTemplateImage = (tPoint.y - mTPoint.y) / (tPoint.x - mTPoint.x);
+
+            if (Math.abs(ratioInQueryImage - ratioInTemplateImage) > kTolerableDifference)
+                return false;
+
+            Log.d(TAG, "Matched Points Info:" +
+                    "query points: " + qPoint.toString() + "\t" + mQPoint.toString()
+                    + "template points: " + tPoint.toString() + "\t" + mTPoint.toString()
+                    + "query ratio:" + ratioInQueryImage + "\t" + "template ratio:" + ratioInTemplateImage);
+        }
+        //if the match looks good to existed points in cluster
+        return true;
     }
 
 }

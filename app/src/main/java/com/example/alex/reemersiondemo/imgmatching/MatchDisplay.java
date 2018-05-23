@@ -17,6 +17,8 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
+import org.opencv.core.DMatch;
+import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
@@ -84,15 +86,28 @@ public class MatchDisplay extends Activity {
         Mat displayImage = new Mat();
         Features2d.drawMatches(queryImg, qKPs, templateImg, tKPs, matches, displayImage);
 
+//        Log.d(TAG, "Debug Match Points:");
+//        DMatch m[] = matches.toArray();
+//        KeyPoint q[] = qKPs.toArray();
+//        KeyPoint t[] = tKPs.toArray();
+//        for (int i = 0; i < matches.total(); i++) {
+//            Log.d(TAG, "Matched Points Info:" +
+//                    "query point: " + q[m[i].queryIdx].pt.toString()
+//            + "template point: " + t[m[i].trainIdx].pt.toString());
+//        }
+
         //calculate precision
         long tKPSize = tKPs.total();
         long qKPSize = qKPs.total();
         long matchSize = matches.total();
         float precision = (float)matchSize/tKPSize;
+        double bonusConfidence = FeatureMatcher.getInstance().bonusConfidenceFromClusteringMatchedPoints(matches, qKPs, tKPs);
         String text = "Template feature points number: " + tKPSize +
                 "\n Query feature points number: " + qKPSize +
                 "\n Matched feature points number: " + matchSize +
-                "\n Precision(matched feature number/template feature number): " + precision;
+                "\n Precision(matched feature number/template feature number): " + precision +
+                "\n Bonus confidence: " + bonusConfidence +
+                "\n Sum score(bonus + precision): " + (bonusConfidence + precision);
         textView.setText(text);
 
 
