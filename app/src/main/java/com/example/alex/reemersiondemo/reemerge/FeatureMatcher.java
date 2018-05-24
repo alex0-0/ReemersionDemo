@@ -161,20 +161,31 @@ private int ratioTest(ArrayList<MatOfDMatch> matches) {
     }
 
     /**
-     //By clustering matched key points in query image and template image respectively,
-     //if a spacial pattern of key points existed in both template and query image,
-     //return a bonus by ((the number of points in that pattern)^2 / (the number of key points in template image))
-     //arguments:
-     //     matches:    matched points
-     //     qKPs:       query key points
-     //     tKPs:       template key points
-     //return:  bonus confidence coming from clustering matched key points
+     * By clustering matched key points in query image and template image respectively,
+     * if a spacial pattern of key points existed in both template and query image,
+     * return a bonus by ((the number of points in that pattern)^2 / (the number of key points in template image))
+     * @param matches  matched points
+     * @param qKPs      query key points
+     * @param tKPs      template key points
+     * @return  bonus confidence coming from clustering matched key points
      **/
     public double bonusConfidenceFromClusteringMatchedPoints(MatOfDMatch matches, MatOfKeyPoint qKPs, MatOfKeyPoint tKPs) {
         double bonus = 0;
+        bonus = greedyClustering(matches, qKPs, tKPs);
+        return bonus;
+    }
+
+    /**
+     * From the first element of matches to the end, cluster as much points to present point as possible
+     * @param matches  matched points
+     * @param qKPs      query key points
+     * @param tKPs      template key points
+     * @return          bonus points
+     */
+    double greedyClustering(MatOfDMatch matches, MatOfKeyPoint qKPs, MatOfKeyPoint tKPs) {
+        double bonus = 0;
         KeyPoint q[] = qKPs.toArray();
         KeyPoint t[] = tKPs.toArray();
-        //TODO: traverse matched points, get ratio between the horizontal difference and vertical difference
         LinkedList<DMatch> matchesList = new LinkedList<>(matches.toList());
         Iterator<DMatch> i1 = matchesList.iterator();
         while (i1.hasNext()) {
