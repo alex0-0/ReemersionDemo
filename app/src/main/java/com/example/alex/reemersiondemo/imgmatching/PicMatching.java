@@ -95,6 +95,9 @@ public class PicMatching extends Activity {
                 imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.e, Imgcodecs.CV_LOAD_IMAGE_COLOR));
                 imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.f, Imgcodecs.CV_LOAD_IMAGE_COLOR));
                 imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.g, Imgcodecs.CV_LOAD_IMAGE_COLOR));
+                imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.h, Imgcodecs.CV_LOAD_IMAGE_COLOR));
+                imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.i, Imgcodecs.CV_LOAD_IMAGE_COLOR));
+                imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.j, Imgcodecs.CV_LOAD_IMAGE_COLOR));
                 GridViewAdapter adapter = new GridViewAdapter(getApplicationContext(), imageList);
                 gridView.setAdapter(adapter);
             } catch (IOException e) {
