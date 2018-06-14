@@ -43,7 +43,7 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
     private Mat targetGray;
     private boolean isSeekingRef;
     private UserGuider userGuider;      //give guidance to user after finding reference object
-    private boolean onProcessing;       //judge if the computation of matching is running in background thread
+    private volatile boolean onProcessing;       //judge if the computation of matching is running in background thread
     private MatOfDMatch matches;
     private MatOfKeyPoint keypoints;
 
@@ -196,7 +196,12 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
             Imgproc.putText(frame, bs, new Point(60,60), Core.FONT_HERSHEY_PLAIN, 3.0, new Scalar(255, 0, 0));
             if (userGuider.getGuidence().length() == 0) {
                 userGuider.stopGuide();
-                Toast.makeText(this, "Target Founded! Angle Correct", Toast.LENGTH_SHORT).show();
+                this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(ReemergeController.this, "Target Founded! Angle Correct", Toast.LENGTH_SHORT).show();
+                    }
+                });
                 finish();
             }
         }

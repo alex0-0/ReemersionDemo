@@ -31,8 +31,6 @@ public class FeatureMatcher {
     static double kTolerableDifference = 0.1;  //an custom number to determine whether two matches have spacial relation
     static String TAG = "Feature Matcher";
 
-    private FlannBasedMatcher flannMatcher;
-
     private DescriptorMatcher BFMatcher;
 
     private static final FeatureMatcher ourInstance = new FeatureMatcher();

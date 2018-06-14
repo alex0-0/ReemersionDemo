@@ -58,7 +58,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private float                                   initialRoll = 0;
     private float                                   initialPitch = 0;
     private boolean                                 refRecorded = false;        //whether reference object recorded
-    private boolean                                 onProcessing = false;
+    private volatile boolean                        onProcessing = false;
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -167,7 +167,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     }
 
     //default opencv camera callback, process frame
-    public synchronized Mat onCameraFrame(final CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+    public Mat onCameraFrame(final CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
 
         if (!onProcessing) {
             //necessary computation starts

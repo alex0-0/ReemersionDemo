@@ -9,6 +9,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.example.alex.reemersiondemo.R;
+import com.example.alex.reemersiondemo.record.FeatureDetector;
 import com.example.alex.reemersiondemo.record.TensorFlowMultiBoxDetector;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -88,6 +89,7 @@ public class PicMatching extends Activity {
                 Mat template = Utils.loadResource(getApplicationContext(), R.drawable.template, Imgcodecs.CV_LOAD_IMAGE_COLOR);
                 template = extractTemplate(template);
                 imageList.add(template);
+                imageList.addAll(FeatureDetector.getInstance().distortImage(template));
                 imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.a, Imgcodecs.CV_LOAD_IMAGE_COLOR));
                 imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.b, Imgcodecs.CV_LOAD_IMAGE_COLOR));
                 imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.c, Imgcodecs.CV_LOAD_IMAGE_COLOR));
