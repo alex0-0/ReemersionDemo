@@ -74,7 +74,10 @@ public class MatchDisplay extends Activity {
         Mat qDescriptors = new Mat(); //query image's Descriptors
 
         //get feature points
-        extractFeatures(templateImg, tKPs, tDescriptors);
+        Mat gray = new Mat();
+        Imgproc.cvtColor(templateImg, gray, Imgproc.COLOR_BGRA2GRAY);
+        FeatureDetector.getInstance().extractDistinctFeatures(gray, tKPs, tDescriptors);
+        gray.release();
         extractFeatures(queryImg, qKPs, qDescriptors);
 
         //get matches
@@ -106,6 +109,11 @@ public class MatchDisplay extends Activity {
                 "\n Sum score(bonus + precision): " + (bonusConfidence + precision);
         textView.setText(text);
 
+        tKPs.release();
+        tDescriptors.release();
+        qKPs.release();
+        qDescriptors.release();
+        matches.release();
 
         return displayImage;
     }
@@ -114,6 +122,7 @@ public class MatchDisplay extends Activity {
         Mat gray = new Mat();
         Imgproc.cvtColor(img, gray, Imgproc.COLOR_BGRA2GRAY);
         FeatureDetector.getInstance().extractFeatures(gray, keyPoints, descriptors);
+        gray.release();
     }
 
     @Override
@@ -131,6 +140,8 @@ public class MatchDisplay extends Activity {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        templateImg.release();
+        queryImg.release();
         templateImg = null;
         queryImg = null;
     }
