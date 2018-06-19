@@ -61,8 +61,7 @@ public class FeatureDetector {
     private static int kDistinctThreshold    =   3;      //threshold deciding whether a feature point is robust to distortion
 
     public boolean extractDistinctFeatures(Mat img, MatOfKeyPoint keyPoints, Mat descriptors) {
-        ArrayList<Mat> r = new ArrayList<>();
-        ArrayList<Mat> distoredImages = distortImage(img);
+        ArrayList<Mat> distortedImages = distortImage(img);
         ArrayList<MatOfKeyPoint> ListOfKeyPoints = new ArrayList<>();
         ArrayList<Mat> ListOfDescriptors = new ArrayList<>();
         MatOfKeyPoint kp = new MatOfKeyPoint();
@@ -75,16 +74,16 @@ public class FeatureDetector {
         ArrayList<Integer> counter = new ArrayList<>(Collections.nCopies((int)kp.total(), 0));
 
         //calculate key points and descriptors of distorted images
-        for (int i = 0; i < distoredImages.size(); i++) {
+        for (int i = 0; i < distortedImages.size(); i++) {
             MatOfKeyPoint k = new MatOfKeyPoint();
             Mat d = new Mat();
-            extractFeatures(distoredImages.get(i), k, d);
+            extractFeatures(distortedImages.get(i), k, d);
             ListOfKeyPoints.add(k);
             ListOfDescriptors.add(d);
         }
 
         //compare key points of original image to distorted images'
-        for (int i = 0; i < distoredImages.size(); i++) {
+        for (int i = 0; i < distortedImages.size(); i++) {
             MatOfDMatch m = FeatureMatcher.getInstance().matchFeature(img, ListOfDescriptors.get(i), des, ListOfKeyPoints.get(i), kp);
 
             //record the times that key point of original image is detected in distorted image
@@ -106,6 +105,15 @@ public class FeatureDetector {
         }
         keyPoints.fromList(rKeyPoints);
         surf.compute(img, keyPoints, descriptors);
+
+        //release resources before return
+        for (int i = 0; i < distortedImages.size(); i++) {
+            distortedImages.get(i).release();
+            ListOfDescriptors.get(i).release();
+            ListOfKeyPoints.get(i).release();
+        }
+        kp.release();
+        des.release();
 
         return true;
     }
@@ -175,6 +183,8 @@ public class FeatureDetector {
             Imgproc.warpAffine(image, rightRotated, rightMatrix, size);
             r.add(leftRotated);
             r.add(rightRotated);
+            leftMatrix.release();
+            rightMatrix.release();
         }
 
         return r;

@@ -45,13 +45,11 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private ArrayList<Rect>                         boundRects;         //the rectangle on objects
     private ArrayList<ArrayList<KeyPoint>>          featureList;        //features inside one rectangle, corresponding to boundRects
     private MatOfKeyPoint                           objectKeypoints;
-    private Mat                                     descriptors;
-    private int                                     selectedIndex;      //record the rectangle user selected
     private Mat                                     ROI;
     private MatOfKeyPoint                           ROIKeypoints;
     private Mat                                     ROIDescriptors;
     private Mat                                     tmpROIGray;
-    private FeatureDetector detector;
+    private FeatureDetector                         detector;
     private DataManager                             dataManager;
     private OrientationManager                      orientationManager;
     private float                                   initialAzimuth = 0;
@@ -89,12 +87,10 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private void initialize() throws IOException {
         detector = FeatureDetector.getInstance();
         objectKeypoints = new MatOfKeyPoint();
-        descriptors = new Mat();
         featureList = new ArrayList<>();
         ROIKeypoints = new MatOfKeyPoint();
         ROIDescriptors = new Mat();
         tmpROIGray = new Mat();
-        selectedIndex = -1;
         dataManager = DataManager.getInstance();
         boundRects = new ArrayList<>();
         TensorFlowInferenceInterface tensorflow = new TensorFlowInferenceInterface(getAssets(), MODEL_PATH);
@@ -182,7 +178,6 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                 @Override
                 public void run() {
                     boundRects = fpTask.getBoundRects();
-                    descriptors = fpTask.getDescriptors();
                     objectKeypoints = fpTask.getObjectKeypoints();
                     constructFeatureMap();
                     //computation ends
@@ -210,6 +205,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         Imgproc.cvtColor(frame, t, Imgproc.COLOR_BGRA2BGR);
         Features2d.drawKeypoints(t, objectKeypoints, t, Scalar.all(-1), Features2d.DRAW_RICH_KEYPOINTS);
         Imgproc.cvtColor(t, frame, Imgproc.COLOR_BGR2BGRA);
+        t.release();
     }
 
     //store feature points laying inside every rectangle
@@ -261,7 +257,6 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
             if(rect.contains(p)){
                 //check whether the number of features inside that rectangle is higher than threshold
                 if (featureList.size() > i && featureList.get(i).size() >= kMinFeatures) {
-                    selectedIndex = i;
                     //crop the region of interest
                     ROI = new Mat(mRgba, boundRects.get(i).clone());
                     Imgproc.cvtColor(ROI, tmpROIGray, Imgproc.COLOR_BGRA2GRAY);
@@ -282,6 +277,15 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                                 + "\n" + dataManager.getPitch()
                                 + "\n" + dataManager.getRoll(),
                                 Toast.LENGTH_SHORT).show();
+
+                        //release resources before quit
+                        mRgba.release();
+                        mGray.release();
+                        ROI.release();
+                        ROIKeypoints.release();
+                        ROIDescriptors.release();
+                        tmpROIGray.release();
+                        objectKeypoints.release();
 
                         //exit to the main screen
                         finish();
