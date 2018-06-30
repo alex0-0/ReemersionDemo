@@ -56,7 +56,7 @@ public class FeatureMatcher {
         ArrayList<MatOfDMatch> matches1 = new ArrayList<>();
         ArrayList<MatOfDMatch>  matches2 = new ArrayList<>();
 
-        BFMatcher.knnMatch(queryDescriptor, templateDescriptor, matches1, 2);
+        BFMatcher.knnMatch(queryDescriptor, templateDescriptor, matches1, 2);       //k(final parameter) set to 1 will do crosscheck
         BFMatcher.knnMatch(templateDescriptor, queryDescriptor, matches2, 2);
 
         ratioTest(matches1);

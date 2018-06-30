@@ -89,6 +89,8 @@ public class PicMatching extends Activity {
                 Mat template = Utils.loadResource(getApplicationContext(), R.drawable.template, Imgcodecs.CV_LOAD_IMAGE_COLOR);
                 template = extractTemplate(template);
                 imageList.add(template);
+                //uncomment next line to see more clearly how distortion works
+//                imageList.addAll(FeatureDetector.getInstance().distortImage(Utils.loadResource(getApplicationContext(), R.drawable.j, Imgcodecs.CV_LOAD_IMAGE_COLOR)));
                 imageList.addAll(FeatureDetector.getInstance().distortImage(template));
                 imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.a, Imgcodecs.CV_LOAD_IMAGE_COLOR));
                 imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.b, Imgcodecs.CV_LOAD_IMAGE_COLOR));
