@@ -65,8 +65,18 @@ public class FeatureMatcher {
         MatOfDMatch symMatches = symmetryTest(matches1, matches2);
         MatOfDMatch ransacMatches = new MatOfDMatch();
 
+        //release resources
+        for (int i = 0; i < matches1.size(); i++) {
+            matches1.get(i).release();
+        }
+        for (int i = 0; i < matches2.size(); i++) {
+            matches2.get(i).release();
+        }
+
         if (symMatches.total() > 20) {
             ransacTest(symMatches, keypoints1, keypoints2, ransacMatches);
+            //release resources
+            symMatches.release();
             return ransacMatches;
         }
         return symMatches;
@@ -92,6 +102,8 @@ private int ratioTest(ArrayList<MatOfDMatch> matches) {
             // does not have 2 neighbours or distance ratio is higher than threshold
             removed++;
         }
+
+        //assign filtered value to matches
         matches = updatedMatches;
 
         return removed;
@@ -134,7 +146,6 @@ private int ratioTest(ArrayList<MatOfDMatch> matches) {
                            MatOfKeyPoint keypoints2,
                            MatOfDMatch outMatches)
     {
-//        return matches;
         // get keypoint coordinates of good matches to find homography and remove outliers using ransac
         List<Point> pts1 = new ArrayList<>();
         List<Point> pts2 = new ArrayList<>();
@@ -163,6 +174,11 @@ private int ratioTest(ArrayList<MatOfDMatch> matches) {
             }
         }
         outMatches.fromList(better_matches);
+        //release resource
+        outputMask.release();
+        pts1Mat.release();
+        pts2Mat.release();
+        Homog.release();
     }
 
     /**
