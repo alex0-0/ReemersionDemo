@@ -13,6 +13,7 @@ import java.util.ArrayList;
 
 public class FeatureDetectTask extends AsyncTask {
     private TensorFlowMultiBoxDetector tfDetector;
+    private TensorFlowYoloDetector yoloDetector;
     private Runnable r;
     private ArrayList<Rect> boundRects;
     private MatOfKeyPoint objectKeypoints;
@@ -21,8 +22,7 @@ public class FeatureDetectTask extends AsyncTask {
     public FeatureDetectTask() {
         super();
         tfDetector = TensorFlowMultiBoxDetector.getInstance();
-        objectKeypoints = new MatOfKeyPoint();
-        descriptors = new Mat();
+        yoloDetector = TensorFlowYoloDetector.getInstance();
     }
 
     //input rgb and gray image, process image in background thread
@@ -37,7 +37,10 @@ public class FeatureDetectTask extends AsyncTask {
         Mat gray = (Mat)params[1];
         FeatureDetector detector = (FeatureDetector) params[2];
         r = (Runnable)params[3];
-        ArrayList<Rect> boundRects = tfDetector.recognizeImage(rgba);
+//        ArrayList<Rect> boundRects = tfDetector.recognizeImage(rgba);
+        ArrayList<Rect> boundRects = yoloDetector.recognizeImage(rgba);
+        objectKeypoints = new MatOfKeyPoint();
+        descriptors = new Mat();
         detector.extractFeatures(gray, objectKeypoints, descriptors);
         this.boundRects = boundRects;
         return null;

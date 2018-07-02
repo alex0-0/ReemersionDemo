@@ -46,6 +46,7 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
     private volatile boolean onProcessing;       //judge if the computation of matching is running in background thread
     private MatOfDMatch matches;
     private MatOfKeyPoint keypoints;
+    private FeatureMatchTask fmTask;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -125,6 +126,8 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
 
     public void onDestroy() {
         super.onDestroy();
+        //cancel task which otherwise may crush application due to accessing released resource in background thread
+        fmTask.cancel(true);
         mOpenCvCameraView.disableView();
         mOpenCvCameraView.disableFpsMeter();
     }
@@ -156,7 +159,7 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
             MatOfKeyPoint refK = (isSeekingRef)? refKeyPoints : targetKeyPoints;
 
             //run relative computation in background thread
-            final FeatureMatchTask fmTask = new FeatureMatchTask();
+            fmTask = new FeatureMatchTask();
             fmTask.execute(mRgba, mGray, detector, matcher, refD, refK, new Runnable() {
                 @Override
                 public void run() {

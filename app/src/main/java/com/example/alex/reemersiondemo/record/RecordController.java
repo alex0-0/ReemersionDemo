@@ -37,8 +37,10 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private static final int                        kMinRectLength = 80;
     private static final String                     TAG = "RecordController";
     private static final String                     MODEL_PATH = "file:///android_asset/ssd_mobilenet_v1_android_export.pb";
+    private static final String                     YOLO_MODEL_FILE = "file:///android_asset/graph-tiny-yolo-voc.pb";
 
     private TensorFlowMultiBoxDetector              tfDetector;
+    private TensorFlowYoloDetector                  yoloDetector;
     private CameraBridgeViewBase                    mOpenCvCameraView;
     private Mat                                     mRgba;
     private Mat                                     mGray;
@@ -57,6 +59,9 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private float                                   initialPitch = 0;
     private boolean                                 refRecorded = false;        //whether reference object recorded
     private volatile boolean                        onProcessing = false;
+
+    //AsyncTask, run computation of feature detection in background thread
+    private FeatureDetectTask fpTask;
 
     private BaseLoaderCallback  mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -93,9 +98,17 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         tmpROIGray = new Mat();
         dataManager = DataManager.getInstance();
         boundRects = new ArrayList<>();
+
+        //set tensorflow model, though the detector is not used here, but since it's static instance, the configuration will work
         TensorFlowInferenceInterface tensorflow = new TensorFlowInferenceInterface(getAssets(), MODEL_PATH);
         tfDetector = TensorFlowMultiBoxDetector.getInstance();
         tfDetector.setTensorflow(tensorflow);
+
+        //set YOLO model, the YOLODetector may be called in future background thread
+        TensorFlowInferenceInterface t = new TensorFlowInferenceInterface(getAssets(), YOLO_MODEL_FILE);
+        yoloDetector = TensorFlowYoloDetector.getInstance();
+        yoloDetector.setTensorflow(t);
+
         orientationManager = new OrientationManager(this);
         orientationManager.startListening(this);
         mOpenCvCameraView.setOnTouchListener(new View.OnTouchListener() {
@@ -146,6 +159,8 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
 
     public void onDestroy() {
         super.onDestroy();
+        //cancel task which otherwise may crush application due to accessing released resource in background thread
+        fpTask.cancel(true);
         orientationManager.stopListening();
         mOpenCvCameraView.disableView();
         mOpenCvCameraView.disableFpsMeter();
@@ -171,8 +186,8 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
 
             mRgba = inputFrame.rgba().clone();      //to remove drawn feature point on the picture.
             mGray = inputFrame.gray();
-            //AsyncTask, run computation in background thread
-            final FeatureDetectTask fpTask = new FeatureDetectTask();
+
+            fpTask = new FeatureDetectTask();
             //Callback after computation ends and pass necessary parameters
             fpTask.execute(mRgba, mGray, detector, new Runnable() {
                 @Override
