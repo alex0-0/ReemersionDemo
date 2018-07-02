@@ -46,6 +46,7 @@ public class TensorFlowYoloDetector {
     private static final String YOLO_OUTPUT_NAMES = "output";
     private static final int YOLO_BLOCK_SIZE = 32;
     private TensorFlowInferenceInterface tensorflow;
+    private ArrayList<Recognition> recognitions = new ArrayList<Recognition>();
 
     private static final TensorFlowYoloDetector ourInstance = new TensorFlowYoloDetector();
 
@@ -56,6 +57,12 @@ public class TensorFlowYoloDetector {
     public void setTensorflow(TensorFlowInferenceInterface tensorflow) {
         this.tensorflow = tensorflow;
     }
+
+    //access to recognized result and get a copy
+    public ArrayList<Recognition> getRecognitions() {
+        return new ArrayList<Recognition>(recognitions);
+    }
+
 
     // TODO(andrewharp): allow loading anchors and classes
     // from files.
@@ -213,7 +220,7 @@ public class TensorFlowYoloDetector {
             }
         }
 
-        final ArrayList<Recognition> recognitions = new ArrayList<Recognition>();
+        recognitions.clear();
         final ArrayList<Rect> rects = new ArrayList<>();
 
         //calculate the ratio between the original image and resized image

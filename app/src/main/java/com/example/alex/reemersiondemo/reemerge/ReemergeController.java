@@ -163,6 +163,7 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
             fmTask.execute(mRgba, mGray, detector, matcher, refD, refK, new Runnable() {
                 @Override
                 public void run() {
+                    //get result
                     matches = fmTask.getMatches();
                     keypoints = fmTask.getKeypoints();
                     onProcessing = false;
@@ -193,6 +194,7 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
                 userGuider = new UserGuider();
                 userGuider.startGuide(this);
             }
+            //OpenCV method to draw matches
             Features2d.drawMatches(mGray, keypoints, targetGray, targetKeyPoints, matches, frame);
             confidence = (float)matches.total()/targetKeyPoints.total();
             String bs = (confidence > CRITERION)?"BINGO!!!" : userGuider.getGuidence();

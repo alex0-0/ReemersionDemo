@@ -59,6 +59,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private float                                   initialPitch = 0;
     private boolean                                 refRecorded = false;        //whether reference object recorded
     private volatile boolean                        onProcessing = false;
+    private ArrayList<Recognition>                  recognitions;
 
     //AsyncTask, run computation of feature detection in background thread
     private FeatureDetectTask fpTask;
@@ -194,6 +195,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                 public void run() {
                     boundRects = fpTask.getBoundRects();
                     objectKeypoints = fpTask.getObjectKeypoints();
+                    recognitions = fpTask.getRecognitions();
                     constructFeatureMap();
                     //computation ends
                     onProcessing = false;
@@ -276,6 +278,8 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                     ROI = new Mat(mRgba, boundRects.get(i).clone());
                     Imgproc.cvtColor(ROI, tmpROIGray, Imgproc.COLOR_BGRA2GRAY);
                     detector.extractFeatures(tmpROIGray, ROIKeypoints, ROIDescriptors);
+                    //extract distinct features
+//                    detector.extractDistinctFeatures(tmpROIGray, ROIKeypoints, ROIDescriptors);
 
                     //if this is target object
                     if (refRecorded) {
@@ -286,6 +290,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                                 orientationManager.getRoll() - initialRoll,
                                 orientationManager.getPitch() - initialPitch
                         );
+                        dataManager.storeTargetRecognitions(recognitions);
                         orientationManager.stopListening();
                         Toast.makeText(this, "Target Recorded!"
                                 + "\n" + dataManager.getAzimuth()
@@ -309,6 +314,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
 
                     //if this is reference object
                     dataManager.storeRefData(tmpROIGray, ROIKeypoints, ROIDescriptors);
+                    dataManager.storeRefRecognitions(recognitions);
                     initialAzimuth = orientationManager.getAzimuth();
                     initialRoll = orientationManager.getRoll();
                     initialPitch = orientationManager.getPitch();
@@ -334,6 +340,6 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     public void onOrientationChanged(float azimuth, float pitch, float roll) {
 //        System.out.println("pitch:\t" + pitch + "\troll:\t" + roll);
 
-        Log.e(TAG,"azimuth:\t" + azimuth + "\tpitch:\t" + pitch + "\troll:\t" + roll);
+        Log.d(TAG,"azimuth:\t" + azimuth + "\tpitch:\t" + pitch + "\troll:\t" + roll);
     }
 }

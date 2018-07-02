@@ -27,6 +27,7 @@ public class TensorFlowMultiBoxDetector {
     private static final String     OUTPUT_NAME_CLASSES = "detection_classes";
     private static final String     OUTPUT_NAME_NUM_DETECTIONS = "num_detections";
     private static final int        INPUT_SIZE = 300;
+    private ArrayList<Recognition> recognitions = new ArrayList<>();
 
     private TensorFlowInferenceInterface tensorflow;
 
@@ -41,6 +42,11 @@ public class TensorFlowMultiBoxDetector {
     }
 
     private TensorFlowMultiBoxDetector() {
+    }
+
+    //access to recognized result and get a copy
+    public ArrayList<Recognition> getRecognitions() {
+        return new ArrayList(recognitions);
     }
 
     public ArrayList<Rect> recognizeImage(final Mat bitmap) {
@@ -106,7 +112,8 @@ public class TensorFlowMultiBoxDetector {
             pq.add(new Recognition("" + i, null, outputScores[i], detection));
         }
 
-        final ArrayList<Recognition> recognitions = new ArrayList<Recognition>();
+        //clear out-of-date message
+        recognitions.clear();
         final ArrayList<Rect> rects = new ArrayList<>();
 
         //calculate the ratio between the original image and resized image

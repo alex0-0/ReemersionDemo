@@ -19,6 +19,8 @@ public class FeatureDetectTask extends AsyncTask {
     private MatOfKeyPoint objectKeypoints;
     private Mat descriptors;
 
+    private ArrayList<Recognition> recognitions;
+
     public FeatureDetectTask() {
         super();
         tfDetector = TensorFlowMultiBoxDetector.getInstance();
@@ -38,7 +40,9 @@ public class FeatureDetectTask extends AsyncTask {
         FeatureDetector detector = (FeatureDetector) params[2];
         r = (Runnable)params[3];
 //        ArrayList<Rect> boundRects = tfDetector.recognizeImage(rgba);
+//        recognitions = tfDetector.getRecognitions();
         ArrayList<Rect> boundRects = yoloDetector.recognizeImage(rgba);
+        recognitions = yoloDetector.getRecognitions();
         objectKeypoints = new MatOfKeyPoint();
         descriptors = new Mat();
         detector.extractFeatures(gray, objectKeypoints, descriptors);
@@ -62,4 +66,9 @@ public class FeatureDetectTask extends AsyncTask {
     public Mat getDescriptors() {
         return descriptors;
     }
+
+    public ArrayList<Recognition> getRecognitions() {
+        return recognitions;
+    }
+
 }

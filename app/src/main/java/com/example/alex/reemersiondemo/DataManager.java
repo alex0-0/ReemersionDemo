@@ -1,7 +1,11 @@
 package com.example.alex.reemersiondemo;
 
+import com.example.alex.reemersiondemo.record.Recognition;
+
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfKeyPoint;
+
+import java.util.ArrayList;
 
 /**
  * Created by alex on 1/29/18.
@@ -14,6 +18,9 @@ public class DataManager {
     private Mat targetTemplateImg;
     private Mat targetDescriptors;
     private MatOfKeyPoint targetKeyPoints;
+
+    private ArrayList<Recognition> refRecognitions;
+    private ArrayList<Recognition> targetRecognitions;
 
     private float azimuth = 0;
     private float roll = 0;
@@ -44,6 +51,14 @@ public class DataManager {
         this.azimuth = azimuth;
         this.roll = roll;
         this.pitch = pitch;
+    }
+
+    public void storeRefRecognitions(ArrayList<Recognition> r) {
+        this.refRecognitions = new ArrayList(r);
+    }
+
+    public void storeTargetRecognitions(ArrayList<Recognition> r) {
+        this.targetRecognitions = new ArrayList(r);
     }
 
     public Mat getRefTemplateImg() {
@@ -82,4 +97,11 @@ public class DataManager {
         return pitch;
     }
 
+    public ArrayList<Recognition> getRefRecognitions() {
+        return refRecognitions;
+    }
+
+    public ArrayList<Recognition> getTargetRecognitions() {
+        return targetRecognitions;
+    }
 }
