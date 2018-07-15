@@ -15,8 +15,9 @@ kp2, des2 = detect.extractFeatures(img_1)
 
 #match feature points
 matches = match.matchFeature(des1, des2)
-# Draw first 10 matches.
-img3 = cv2.drawMatches(img,kp1,img_1,kp2,matches[:50], None, flags=2)
+# Draw matches.
+#img3 = cv2.drawMatchesKnn(img,kp1,img_1,kp2,matches, None, flags=2)
+img3 = cv2.drawMatches(img,kp1,img_1,kp2,matches, None, flags=2)
 
 cv2.imshow("match", img3)
 cv2.waitKey(0)
