@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """ Match feature points """
 import cv2
+import numpy as np
 
-def matchFeature(des1, des2):
+def matchFeature(des1, kp1, des2, kp2):
     # create BFMatcher object
     bf = cv2.BFMatcher()
 #    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
@@ -21,6 +22,10 @@ def matchFeature(des1, des2):
 
     #symmetry test
     sym_match = symmetryTest(m1, m2)
+    
+    kRansacThreshold = 20
+    if len(sym_match) > kRansacThreshold:
+        sym_match = ransacTest(sym_match, kp1, kp2)
 
     return sym_match
 
@@ -47,5 +52,21 @@ def symmetryTest(m1, m2):
 
     return r
     
-def ransacTest(m, k1, k2):
+def ransacTest(matches, kp1, kp2):
     r = []
+    src_pts = np.float32([ kp1[m.queryIdx].pt for m in matches ]).reshape(-1,1,2)
+    dst_pts = np.float32([ kp2[m.trainIdx].pt for m in matches ]).reshape(-1,1,2)
+    kRansacRepojThreashold = 15.0
+    #RANSAC get mask
+    T, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, kRansacRepojThreashold)
+    #print(mask)
+
+    #filter out inlier
+    i = 0
+    for m in matches:
+        if 1 == mask[i]:
+            r.append(m)
+        i += 1
+
+    return r
+
