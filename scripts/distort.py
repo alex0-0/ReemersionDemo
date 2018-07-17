@@ -5,17 +5,40 @@ import cv2 as cv
 
 def rotateImage(img):
     #the step difference between angles of generating distorted images, in degree.
-    kStepAngle = 5
+    kStepAngle = 10
     #the number of different scale distorted images
     kNum = 6
-    rows,cols,ch = img.shape
+    (h, w) = img.shape[:2]
+    (cX, cY) = (w // 2, h // 2)
+
 
     r = []
     for i in range(int(kNum/2)):
-        M1 = cv.getRotationMatrix2D(((cols-1)/2.0,(rows-1)/2.0),kStepAngle*i,1)
-        r.append(cv.warpAffine(img,M1,(cols,rows)))
-        M2 = cv.getRotationMatrix2D(((cols-1)/2.0,(rows-1)/2.0),-kStepAngle*i,1)
-        r.append(cv.warpAffine(img,M2,(cols,rows)))
+        M1 = cv.getRotationMatrix2D((cX, cY),kStepAngle*i,1)
+        cos = np.abs(M1[0, 0])
+        sin = np.abs(M1[0, 1])
+        # compute the new bounding dimensions of the image
+        nW = int((h * sin) + (w * cos))
+        nH = int((h * cos) + (w * sin))
+ 
+        # adjust the rotation matrix to take into account translation
+        M1[0, 2] += (nW / 2) - cX
+        M1[1, 2] += (nH / 2) - cY
+
+        r.append(cv.warpAffine(img,M1,(nW,nH)))
+
+        M2 = cv.getRotationMatrix2D((cX, cY),-kStepAngle*i,1)
+        cos = np.abs(M2[0, 0])
+        sin = np.abs(M2[0, 1])
+        # compute the new bounding dimensions of the image
+        nW = int((h * sin) + (w * cos))
+        nH = int((h * cos) + (w * sin))
+ 
+        # adjust the rotation matrix to take into account translation
+        M2[0, 2] += (nW / 2) - cX
+        M2[1, 2] += (nH / 2) - cY
+
+        r.append(cv.warpAffine(img,M2,(nW,nH)))
 
     return r
 
