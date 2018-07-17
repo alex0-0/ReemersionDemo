@@ -9,7 +9,7 @@ TAG = "DETECT\t"
 
 #return keypoints and descriptors
 def extractFeatures(img):
-    return extractSURFFeatures(img)
+    return extractORBFeatures(img)
 
 def extractDistinctFeatures(img):
     #every feature points has to be matched to at least more than 3 pictures
@@ -70,7 +70,7 @@ def extractSURFFeatures(img):
     return keypoints, descriptors
 
 def extractORBFeatures(img):
-    orb = cv2.ORB_create(edgeThreshold=15, patchSize=31, nlevels=8, fastThreshold=20, scaleFactor=1.2, WTA_K=2,scoreType=cv2.ORB_HARRIS_SCORE, firstLevel=0, nfeatures=500)
+    orb = cv2.ORB_create(edgeThreshold=15, patchSize=31, nlevels=8, fastThreshold=90, scaleFactor=1.2, WTA_K=2,scoreType=cv2.ORB_HARRIS_SCORE, firstLevel=0, nfeatures=500)
     
     kp = orb.detect(img)
     kp, des = orb.compute(img, kp)

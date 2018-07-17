@@ -5,7 +5,7 @@ import cv2 as cv
 
 def rotateImage(img):
     #the step difference between angles of generating distorted images, in degree.
-    kStepAngle = 10
+    kStepAngle = 5
     #the number of different scale distorted images
     kNum = 6
     (h, w) = img.shape[:2]
