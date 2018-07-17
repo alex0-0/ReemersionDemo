@@ -10,6 +10,7 @@ def matchFeature(des1, kp1, des2, kp2):
 
     
     # Match descriptors.
+    #cv.DescriptorMatcher.knnMatch(	queryDescriptors, trainDescriptors, k[, mask[, compactResult]]	)
     m1 = bf.knnMatch(des1, des2, k=2)
     m2 = bf.knnMatch(des2, des1, k=2)
     
@@ -59,7 +60,6 @@ def ransacTest(matches, kp1, kp2):
     kRansacRepojThreashold = 15.0
     #RANSAC get mask
     T, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, kRansacRepojThreashold)
-    #print(mask)
 
     #filter out inlier
     i = 0
