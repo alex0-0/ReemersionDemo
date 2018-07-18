@@ -32,6 +32,8 @@ def matchFeature(des1, kp1, des2, kp2):
     if len(sym_match) > kRansacThreshold:
         sym_match = ransacTest(sym_match, kp1, kp2)
 
+    sym_match = sorted(sym_match, key = lambda x:x.distance)
+
     return sym_match
 
 #if the two best matches are relatively close in distance,

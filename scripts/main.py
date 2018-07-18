@@ -47,8 +47,8 @@ def trackFeatureChange(img, angle_step, scale_step, affine_step, pers_step):
         count += 1
 
 
-img = cv2.imread("j.png")
-img_1 = cv2.imread("affine_2.png")
+img = cv2.imread("test.png")
+img_1 = cv2.imread("distorted.png")
 
 #extract feature points
 kp1, des1 = detect.extractSURFFeatures(img)
@@ -65,7 +65,7 @@ matches = match.matchFeature(des1, kp1, des2, kp2)
 #
 #cv2.imshow("match", img3)
 #cv2.waitKey(0)
-img3 = match.drawMatches(img,kp1,img_1,kp2,matches, thickness=1)
+img3 = match.drawMatches(img,kp1,img_1,kp2,matches[:10], thickness=3, color=(255,0,0))
 
 #t = detect.extractDistinctFeatures(img)
 #for i in t:
