@@ -20,7 +20,7 @@ test.testMatch(img, img1, detect.extractORBFeatures)
 
 #cv2.destroyAllWindows()
 
-test.trackFeatureChange(img, 5, 0.1, 0.1, 0.1)
+test.trackFeatureChange(img, 5, 0.1, 0.1, 0.1, detect_method=detect.extractORBFeatures)
 
 if DEBUG:
     img2 = cv2.imread("distorted_img/rotate_5.png")
