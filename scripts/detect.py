@@ -4,7 +4,7 @@ import cv2
 import distort
 import match
 
-DEBUG = True
+DEBUG = False
 TAG = "DETECT\t"
 
 #return keypoints and descriptors

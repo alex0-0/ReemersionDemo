@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-DEBUG = True
+DEBUG = False
 TAG = "MATCH\t"
 
 def matchFeature(des1, kp1, des2, kp2):
