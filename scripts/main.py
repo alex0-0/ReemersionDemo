@@ -25,7 +25,7 @@ test.trackFeatureChange(img, 5, 0.1, 0.1, 0.1, detect_method=detect.extractORBFe
 if DEBUG:
     img2 = cv2.imread("distorted_img/rotate_5.png")
     test.testDetect(img, detect.extractORBFeatures)
-    test.testDetect(img2, detect.extractORBFeatures)
+    test.testDetect(img2, detect.extractSURFFeatures)
 
 
 #debug distinct feature points

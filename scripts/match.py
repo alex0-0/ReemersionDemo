@@ -3,13 +3,30 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from enum import Enum
 
 DEBUG = False
 TAG = "MATCH\t"
 
-def matchFeature(des1, kp1, des2, kp2):
+class DescriptorType(Enum):
+    ORB = 1
+    SURF = 2
+
+def matchFeature(des1, kp1, des2, kp2, d_type=DescriptorType.ORB):
     # create BFMatcher object
-    bf = cv2.BFMatcher()
+    '''
+    By default, BFMatcher uses cv2.NORM_L2. It is good for SIFT, SURF etc (cv2.NORM_L1 is also there). For binary string based descriptors like ORB, BRIEF, BRISK etc, cv2.NORM_HAMMING should be used, which used Hamming distance as measurement. If ORB is using WTA_K == 3 or 4, cv2.NORM_HAMMING2 should be used.
+    '''
+    def distanceType(x):
+        return {
+                DescriptorType.ORB : cv2.NORM_HAMMING,
+                DescriptorType.SURF : cv2.NORM_L2
+                }.get(x, cv2.NORM_HAMMING)
+
+    if DEBUG:
+        print(TAG + "descriptor type: " + str(d_type))
+
+    bf = cv2.BFMatcher(distanceType(d_type))
 #    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
     

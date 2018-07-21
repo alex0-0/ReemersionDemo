@@ -5,6 +5,7 @@ import detect
 import numpy as np
 import distort
 import match
+from match import DescriptorType
 
 DEBUG = True
 TAG = "TEST\t"
@@ -103,7 +104,10 @@ def testMatch(img_1, img_2, detect_method=detect.extractORBFeatures):
     kp1, des1 = detect_method(img_1)
     kp2, des2 = detect_method(img_2)
     #match feature points
-    matches = match.matchFeature(des1, kp1, des2, kp2)
+    if detect_method == detect.extractORBFeatures:
+        matches = match.matchFeature(des1, kp1, des2, kp2, DescriptorType.ORB)
+    elif detect_method == detect.extractSURFFeatures:
+        matches = match.matchFeature(des1, kp1, des2, kp2, DescriptorType.SURF)
     # Draw matches.
     #img3 = cv2.drawMatchesKnn(img,kp1,img_1,kp2,matches, None, flags=2)
     #img3 = cv2.drawMatches(img,kp1,img_1,kp2,matches, None, flags=2)
