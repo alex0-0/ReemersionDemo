@@ -24,6 +24,10 @@ def trackDistort(img, des, distort_method, detect_method=detect.extractORBFeatur
 
     for i in t:
         k, d = detect_method(i)
+        if len(k) == 0:
+            features.append(0)
+            matches.append(0)
+            continue
         m = bf.match(des, d)
         features.append(len(k))
         matches.append(len(m))
@@ -49,6 +53,7 @@ def trackAffine(img, detect_method=detect.extractORBFeatures, des = None):
 def trackPerspective(img, detect_method=detect.extractORBFeatures, des = None):
     if des == None:
         kp, des = detect_method(img)
+        print("the number of feature points: " + str(len(kp)))
     return trackDistort(img, des, distort.changeImagePerspective, detect_method)
 
 def trackFeatureChange(img, angle_step, scale_step, affine_step, pers_step, detect_method=detect.extractORBFeatures):
@@ -185,7 +190,7 @@ def massTrackFeaturePoints(d, angle_step, scale_step, detect_method=detect.extra
 
     for f in  images:
         if DEBUG:
-            print(TAG + "file name" + str(f))
+            print(TAG + "file name: " + str(f))
         image = cv2.imread(f)
         kp, des = detect_method(image)
         original += len(kp)
