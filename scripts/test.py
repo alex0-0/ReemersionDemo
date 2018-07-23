@@ -6,9 +6,50 @@ import numpy as np
 import distort
 import match
 from match import DescriptorType
+import os
+import matplotlib.pyplot as plt
+import glob
 
 DEBUG = True
 TAG = "TEST\t"
+
+def trackDistort(img, des, distort_method, detect_method=detect.extractORBFeatures):
+    t = distort_method(img)
+    features = []
+    matches = []
+    if detect_method == detect.extractSURFFeatures:
+        bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck = True)
+    else:
+        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
+
+    for i in t:
+        k, d = detect_method(i)
+        m = bf.match(des, d)
+        features.append(len(k))
+        matches.append(len(m))
+
+    return features, matches
+
+#track the change on the number of feature points. des is descriptor of original image, used for matching, if not given, will calculate in method
+def trackRotate(img, detect_method=detect.extractORBFeatures, des = None):
+    if des == None:
+        kp, des = detect_method(img)
+    return trackDistort(img, des, distort.rotateImage, detect_method)
+
+def trackScale(img, detect_method=detect.extractORBFeatures, des = None):
+    if des == None:
+        kp, des = detect_method(img)
+    return trackDistort(img, des, distort.scaleImage, detect_method)
+
+def trackAffine(img, detect_method=detect.extractORBFeatures, des = None):
+    if des == None:
+        kp, des = detect_method(img)
+    return trackDistort(img, des, distort.affineImage, detect_method)
+
+def trackPerspective(img, detect_method=detect.extractORBFeatures, des = None):
+    if des == None:
+        kp, des = detect_method(img)
+    return trackDistort(img, des, distort.changeImagePerspective, detect_method)
 
 def trackFeatureChange(img, angle_step, scale_step, affine_step, pers_step, detect_method=detect.extractORBFeatures):
     kp1, des1 = detect_method(img)
@@ -120,3 +161,163 @@ def testMatch(img_1, img_2, detect_method=detect.extractORBFeatures):
         print(TAG + "train key points size: " + str(len(kp2)))
     
     match.drawMatches(img_1,kp1,img_2,kp2,matches[:10], thickness=3, color=(255,0,0))
+
+"Track feature points changes of all pictures in directory d"
+def massTrackFeaturePoints(d, angle_step, scale_step, detect_method=detect.extractORBFeatures):
+    if os.path.isdir(d) == False:
+        print(TAG + d + " is not a directory")
+        return 
+    #declare those variables for recording features change
+    original = 0
+    feature_rotate = None
+    match_rotate = None
+    feature_scale = None
+    match_scale = None
+    feature_affine = None
+    match_affine = None
+    feature_per = None
+    match_per = None
+
+    images = [os.path.join(d,name) for name in os.listdir(d) if os.path.isfile(os.path.join(d, name))]
+
+    #the number of files in directory d
+    file_num = len(images)
+
+    for f in  images:
+        if DEBUG:
+            print(TAG + "file name" + str(f))
+        image = cv2.imread(f)
+        kp, des = detect_method(image)
+        original += len(kp)
+
+        f1, m1 = trackRotate(image, detect_method)
+        #initiate record array
+        if feature_rotate is None:
+            feature_rotate = np.array([0]*len(f1))
+            match_rotate = np.array([0]*len(f1))
+        feature_rotate += np.array(f1)
+        match_rotate += np.array(m1)
+
+        f2, m2 = trackScale(image, detect_method)
+        #initiate record array
+        if feature_scale is None:
+            feature_scale = np.array([0]*len(f2))
+            match_scale = np.array([0]*len(f2))
+        feature_scale += np.array(f2)
+        match_scale += np.array(m2)
+
+        f3, m3 = trackAffine(image, detect_method)
+        #initiate record array
+        if feature_affine is None:
+            feature_affine = np.array([0]*len(f3))
+            match_affine = np.array([0]*len(f3))
+        feature_affine += np.array(f3)
+        match_affine += np.array(m3)
+
+        f4, m4 = trackPerspective(image, detect_method)
+        #initiate record array
+        if feature_per is None:
+            feature_per = np.array([0]*len(f4))
+            match_per = np.array([0]*len(f4))
+        feature_per += np.array(f4)
+        match_per += np.array(m4)
+
+    #calculate average value
+    original = original / file_num
+    feature_rotate = feature_rotate / file_num
+    match_rotate = match_rotate / file_num
+    feature_scale = feature_scale / file_num
+    match_scale = match_scale / file_num
+    feature_affine = feature_affine / file_num
+    match_affine = match_affine / file_num
+    feature_per = feature_per / file_num
+    match_per = match_per / file_num
+
+    if DEBUG:
+        print(TAG + "length of feature_rotate: " + str(len(feature_rotate)))
+        print(TAG + "feature_rotate: " + str(feature_rotate))
+        print(TAG + "length of match_rotate: " + str(len(match_rotate)))
+        print(TAG + "match_rotate: " + str(match_rotate))
+        print(TAG + "length of feature_scale: " + str(len(feature_scale)))
+        print(TAG + "feature_scale: " + str(feature_scale))
+        print(TAG + "length of match_scale: " + str(len(match_scale)))
+        print(TAG + "match_scale: " + str(match_scale))
+        print(TAG + "length of feature_affine: " + str(len(feature_affine)))
+        print(TAG + "feature_affine: " + str(feature_affine))
+        print(TAG + "length of match_affine: " + str(len(match_affine)))
+        print(TAG + "match_affine: " + str(match_affine))
+        print(TAG + "length of feature_per: " + str(len(feature_per)))
+        print(TAG + "feature_per: " + str(feature_per))
+        print(TAG + "length of match_per: " + str(len(match_per)))
+        print(TAG + "match_per: " + str(match_per))
+
+    #rearrange rotate and scale list
+    fr = [0] * (len(feature_rotate) + 1)
+    mr = [0] * (len(match_rotate) + 1)
+    fr[int(len(feature_rotate)/2)] = original
+    mr[int(len(match_rotate)/2)] = original
+    pivot = int(len(feature_rotate)/2)
+    for i in range(int(len(feature_rotate)/2)):
+        fr[pivot-(i+1)] = feature_rotate[2*i]
+        fr[pivot+(i+1)] = feature_rotate[2*i+1]
+        mr[pivot-(i+1)] = match_rotate[2*i]
+        mr[pivot+(i+1)] = match_rotate[2*i+1]
+    feature_rotate = fr
+    match_rotate = mr
+
+    fs = [0] * (len(feature_scale) + 1)
+    ms = [0] * (len(match_scale) + 1)
+    fs[int(len(feature_scale)/2)] = original
+    ms[int(len(match_scale)/2)] = original
+    pivot = int(len(feature_scale)/2)
+    for i in range(int(len(feature_scale)/2)):
+        fs[pivot-(i+1)] = feature_scale[2*i]
+        fs[pivot+(i+1)] = feature_scale[2*i+1]
+        ms[pivot-(i+1)] = match_scale[2*i]
+        ms[pivot+(i+1)] = match_scale[2*i+1]
+    feature_scale = fs
+    match_scale = ms
+
+    feature_affine = np.insert(feature_affine, 0, original)
+    match_affine = np.insert(match_affine, 0, original)
+    feature_per = np.insert(feature_per, 0, original)
+    match_per = np.insert(match_per, 0, original)
+    if DEBUG:
+        print(TAG + "length of feature_rotate: " + str(len(feature_rotate)))
+        print(TAG + "feature_rotate: " + str(feature_rotate))
+
+    x = np.array(list(range(-int(len(feature_rotate)/2), int(len(feature_rotate)/2)+1)))*angle_step
+    plt.plot(x, feature_rotate, label = "feature points")
+    plt.plot(x, match_rotate, label = "matches")
+    plt.xlabel('rotated angle')
+    plt.ylabel('the number of feature points or matches')
+    plt.title('rotate')
+    plt.legend()
+    plt.show()
+
+    x = np.array(list(range(-int(len(feature_scale)/2), int(len(feature_scale)/2)+1)))*scale_step
+    plt.plot(x, feature_scale, label = "feature points")
+    plt.plot(x, match_scale, label = "matches")
+    plt.xlabel('scale')
+    plt.ylabel('the number of feature points or matches')
+    plt.title('scale')
+    plt.legend()
+    plt.show()
+
+    x = list(range(len(feature_affine)))
+    plt.plot(x, feature_affine, label = "feature points")
+    plt.plot(x, match_affine, label = "matches")
+    plt.xlabel('affine')
+    plt.ylabel('the number of feature points or matches')
+    plt.title('affine')
+    plt.legend()
+    plt.show()
+
+    x = list(range(len(feature_per)))
+    plt.plot(x, feature_per, label = "feature points")
+    plt.plot(x, match_per, label = "matches")
+    plt.xlabel('perspective')
+    plt.ylabel('the number of feature points or matches')
+    plt.title('perspective')
+    plt.legend()
+    plt.show()
