@@ -10,7 +10,7 @@ import test
 DEBUG = True
 TAG = "MAIN\t"
 
-#img = cv2.imread("test.png")
+img = cv2.imread("test.png")
 #img1 = cv2.imread("distorted.png")
 #
 ##save distorted image to default directory, i.e., distorted_img
@@ -31,4 +31,8 @@ TAG = "MAIN\t"
 ##debug distinct feature points
 #test.testDistinctFeature(img)
 
-test.massTrackFeaturePoints("tmp/", 5, 0.1, detect.extractORBFeatures)
+#test.massTrackFeaturePoints("tmp/", 5, 0.1, detect.extractORBFeatures)
+#img = cv2.imread("bike_template.JPEG")
+#img1 = cv2.imread("bicycle/n02834778_9885.JPEG")
+#test.testMatch(img, img1, detect.extractORBFeatures)
+test.compareImageInSameCategory("bike_template.JPEG", "bicycle", detect.extractORBFeatures)

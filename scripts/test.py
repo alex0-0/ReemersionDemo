@@ -306,3 +306,29 @@ def massTrackFeaturePoints(d, angle_step, scale_step, detect_method=detect.extra
     plt.title('perspective')
     plt.legend()
     plt.show()
+
+def compareImageInSameCategory(img_name, d, detect_method=detect.extractORBFeatures):
+    if os.path.isdir(d) == False:
+        print(TAG + d + " is not a directory")
+        return 
+    img = cv2.imread(img_name)
+    kp, des = detect_method(img)
+    #read files into list
+    images = [cv2.imread(os.path.join(d,name)) for name in os.listdir(d) if os.path.isfile(os.path.join(d, name))]
+    #get keypoints and descriptors of every image
+    features = [detect_method(i) for i in images]
+
+    #initialize matcher
+    if detect_method == detect.extractSURFFeatures:
+        bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck = True)
+    else:
+        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
+
+    #get  matches
+#    matches = [match.matchFeature(des, kp, d, k, DescriptorType.ORB) for (k,d) in features if d is not None]
+#    matches = [match.matchFeature(des, kp, d, k, DescriptorType.SURF) for (k,d) in features if d is not None]
+    matches = [bf.match(des, d) for (k,d) in features if d is not None]
+    if DEBUG:
+        [print(TAG + "number of matches: " + str(len(m))) for m in matches]
+    print(TAG + "the number of feature points in original image: " + str(len(kp)))
+    print(TAG + "average matched feature point for " + str(len(images)) + " images is: " + str(sum(len(m) for m in matches) / len(images)))
