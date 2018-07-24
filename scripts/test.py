@@ -36,62 +36,50 @@ def trackDistort(img, des, distort_method, detect_method=detect.extractORBFeatur
 
 #track the change on the number of feature points. des is descriptor of original image, used for matching, if not given, will calculate in method
 def trackRotate(img, detect_method=detect.extractORBFeatures, des = None):
-    if des == None:
+    if des is None:
         kp, des = detect_method(img)
     return trackDistort(img, des, distort.rotateImage, detect_method)
 
 def trackScale(img, detect_method=detect.extractORBFeatures, des = None):
-    if des == None:
+    if des is None:
         kp, des = detect_method(img)
     return trackDistort(img, des, distort.scaleImage, detect_method)
 
 def trackAffine(img, detect_method=detect.extractORBFeatures, des = None):
-    if des == None:
+    if des is None:
         kp, des = detect_method(img)
     return trackDistort(img, des, distort.affineImage, detect_method)
 
 def trackPerspective(img, detect_method=detect.extractORBFeatures, des = None):
-    if des == None:
+    if des is None:
         kp, des = detect_method(img)
         print("the number of feature points: " + str(len(kp)))
     return trackDistort(img, des, distort.changeImagePerspective, detect_method)
 
 def trackFeatureChange(img, angle_step, scale_step, affine_step, pers_step, detect_method=detect.extractORBFeatures):
     kp1, des1 = detect_method(img)
-    if detect_method == detect.extractSURFFeatures:
-        if DEBUG:
-            print(TAG + "SURF descriptor")
-        bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck = True)
-    else:
-        if DEBUG:
-            print(TAG + "ORB descriptor")
-        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
 
     print(TAG + "original: " + str(len(kp1)))
 
     print(TAG + "**************rotate**************")
-    t = distort.rotateImage(img)
-    count = 0
-    for i in t:
-        kp, des = detect_method(i)
-        print(TAG + ("+" if (count%2==0) else "-") + str((count//2+1)*angle_step) + ": " + str(len(kp)))
-        m = bf.match(des1, des)
+    k, m = trackRotate(img, detect_method, des1)
+    for i in range(len(k)):
+        print(TAG + ("+" if (i%2==0) else "-") + str((i//2+1)*angle_step) + ": " + str(len(k)))
         print(TAG + "matched features: " + str(len(m)))
-        count += 1
 
     print(TAG + "**************scale**************")
-    t = distort.scaleImage(img)
-    count = 0
-    for i in t:
-        kp, des = detect_method(i)
-        scale = (1 + (count//2+1)*scale_step) if (count%2==0) else (1 - (count//2+1)*scale_step)
-        print(TAG + str(scale) + ": " + str(len(kp)))
-        m = bf.match(des1, des)
+    k, m = trackScale(img, detect_method, des1)
+    for i in range(len(k)):
+        scale = (1 + (i//2+1)*scale_step) if (i%2==0) else (1 - (i//2+1)*scale_step)
+        print(TAG + str(scale) + ": " + str(len(k)))
         print(TAG + "matched features: " + str(len(m)))
-        count += 1
 
     print(TAG + "**********scale + rotate**********")
     t = distort.scaleImage(img)
+    if detect_method == detect.extractSURFFeatures:
+        bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck = True)
+    else:
+        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
     count = 0
     for i in t:
         scale = (1 + (count//2+1)*scale_step) if (count%2==0) else (1 - (count//2+1)*scale_step)
@@ -107,24 +95,16 @@ def trackFeatureChange(img, angle_step, scale_step, affine_step, pers_step, dete
         count += 1
 
     print(TAG + "**************affine**************")
-    t = distort.affineImage(img)
-    count = 1
-    for i in t:
-        kp, des = detect_method(i)
-        print(TAG + str(count) + ": " + str(len(kp)))
-        m = bf.match(des1, des)
+    k, m = trackAffine(img, detect_method, des1)
+    for i in range(len(k)):
+        print(TAG + str(i) + ": " + str(len(k)))
         print(TAG + "matched features: " + str(len(m)))
-        count += 1
 
     print(TAG + "perspective:")
-    t = distort.changeImagePerspective(img)
-    count = 1
-    for i in t:
-        kp, des = detect_method(i)
-        print(TAG + str(count) + ": " + str(len(kp)))
-        m = bf.match(des1, des)
+    k, m = trackPerspective(img, detect_method, des1)
+    for i in range(len(k)):
+        print(TAG + str(i) + ": " + str(len(kp)))
         print(TAG + "matched features: " + str(len(m)))
-        count += 1
 
 def testDetect(img, detect_method=detect.extractORBFeatures, title=None):
     kps, des = detect_method(img)
