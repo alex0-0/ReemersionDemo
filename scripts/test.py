@@ -332,7 +332,7 @@ def compareImageInSameCategory(img_name, d, detect_method=detect.extractORBFeatu
     matches = [bf.match(des, d) for (k,d) in features if d is not None]
     if DEBUG:
         [print(TAG + "number of matches: " + str(len(m))) for m in matches]
-    print(TAG + "the number of feature points in original image: " + str(len(kp)))
+    print(TAG + "the number of feature points in template image: " + str(len(kp)))
     print(TAG + "average matched feature point for " + str(len(features)) + " images is: " + str(sum(len(m) for m in matches) / len(features)))
     if DEBUG:
         print(TAG + "display first image matches")
