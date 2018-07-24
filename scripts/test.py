@@ -316,7 +316,9 @@ def compareImageInSameCategory(img_name, d, detect_method=detect.extractORBFeatu
     #read files into list
     images = [cv2.imread(os.path.join(d,name)) for name in os.listdir(d) if os.path.isfile(os.path.join(d, name))]
     #get keypoints and descriptors of every image
-    features = [detect_method(i) for i in images]
+    if DEBUG:
+        [print(TAG + "ALERT! NULL IMAGE") for i in images if i is None]
+    features = [detect_method(i) for i in images if i is not None]
 
     #initialize matcher
     if detect_method == detect.extractSURFFeatures:
@@ -331,4 +333,7 @@ def compareImageInSameCategory(img_name, d, detect_method=detect.extractORBFeatu
     if DEBUG:
         [print(TAG + "number of matches: " + str(len(m))) for m in matches]
     print(TAG + "the number of feature points in original image: " + str(len(kp)))
-    print(TAG + "average matched feature point for " + str(len(images)) + " images is: " + str(sum(len(m) for m in matches) / len(images)))
+    print(TAG + "average matched feature point for " + str(len(features)) + " images is: " + str(sum(len(m) for m in matches) / len(features)))
+    if DEBUG:
+        print(TAG + "display first image matches")
+        match.drawMatches(img, kp, images[0], features[0][0], matches[0][:30], thickness=3, color=(255,0,0))
