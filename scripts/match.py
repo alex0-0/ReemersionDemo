@@ -12,6 +12,19 @@ class DescriptorType(Enum):
     ORB = 1
     SURF = 2
 
+def BFMatchFeature(des1, des2, d_type=DescriptorType.ORB):
+    if d_type == DescriptorType.SURF:
+        bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck = True)
+    else:
+        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
+
+    if DEBUG:
+        print(TAG + "query key points size: " + str(len(des1)))
+        print(TAG + "train key points size: " + str(len(des2)))
+
+    m = bf.match(des1, des2)
+    return m
+
 def matchFeature(des1, kp1, des2, kp2, d_type=DescriptorType.ORB):
     # create BFMatcher object
     '''

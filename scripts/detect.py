@@ -3,20 +3,36 @@
 import cv2
 import distort
 import match
+from match import DescriptorType
 
 DEBUG = False
 TAG = "DETECT\t"
+
+def extractSURFFeatures(img):
+    surf = cv2.xfeatures2d.SURF_create()
+    #TODO: need to figure out how to increase the threshold
+    #surf.hessianThreshold = 400
+    keypoints, descriptors = surf.detectAndCompute(img, None)
+    return keypoints, descriptors
+
+def extractORBFeatures(img):
+    orb = cv2.ORB_create(edgeThreshold=15, patchSize=31, nlevels=8, fastThreshold=90, scaleFactor=1.2, WTA_K=2,scoreType=cv2.ORB_HARRIS_SCORE, firstLevel=0, nfeatures=500)
+    
+    kp = orb.detect(img)
+    kp, des = orb.compute(img, kp)
+
+    return kp,des
 
 #return keypoints and descriptors
 def extractFeatures(img):
     return extractORBFeatures(img)
 
-def extractDistinctFeatures(img):
+def extractDistinctFeatures(img, detect_method=extractORBFeatures):
     #every feature points has to be matched to at least more than 3 pictures
     kDistinctThreshold = 10
 
     #original key points of the image
-    kps, des = extractFeatures(img)
+    kps, des = detect_method(img)
 
     #get distorted images
     distorted_img = []
@@ -31,7 +47,7 @@ def extractDistinctFeatures(img):
     list_of_des = []
 
     for i in distorted_img:
-        k, d = extractFeatures(i)
+        k, d = detect_method(i)
         list_of_kps.append(k)
         list_of_des.append(d)
     
@@ -41,8 +57,13 @@ def extractDistinctFeatures(img):
     #list of counters which record how many times the feature point is matched to distorted images
     counters = [0] * len(kps)
 
+    d_type = DescriptorType.ORB 
+    if detect_method == extractSURFFeatures:
+        d_type = DescriptorType.SURF
+
     for i in range(len(distorted_img)):
-        matches = match.matchFeature(des, kps, list_of_des[i], list_of_kps[i])
+#        matches = match.BFMatchFeature(des, list_of_des[i], d_type)
+        matches = match.matchFeature(des, kps, list_of_des[i], list_of_kps[i], d_type)
         for m in matches:
             counters[m.queryIdx] += 1
 
@@ -61,18 +82,3 @@ def extractDistinctFeatures(img):
         print(TAG + "distinct key point number:" + str(len(r_kps)))
     
     return r_kps, r_des
-
-def extractSURFFeatures(img):
-    surf = cv2.xfeatures2d.SURF_create()
-    #TODO: need to figure out how to increase the threshold
-    #surf.hessianThreshold = 400
-    keypoints, descriptors = surf.detectAndCompute(img, None)
-    return keypoints, descriptors
-
-def extractORBFeatures(img):
-    orb = cv2.ORB_create(edgeThreshold=15, patchSize=31, nlevels=8, fastThreshold=90, scaleFactor=1.2, WTA_K=2,scoreType=cv2.ORB_HARRIS_SCORE, firstLevel=0, nfeatures=500)
-    
-    kp = orb.detect(img)
-    kp, des = orb.compute(img, kp)
-
-    return kp,des

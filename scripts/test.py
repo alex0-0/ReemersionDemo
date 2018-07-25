@@ -118,7 +118,7 @@ def testDetect(img, detect_method=detect.extractORBFeatures, title=None):
     cv2.waitKey(0)
 
 def testDistinctFeature(img, detect_method=detect.extractORBFeatures):
-    kps, des = detect.extractDistinctFeatures(img)
+    kps, des = detect.extractDistinctFeatures(img, detect_method)
     if DEBUG:
         print(TAG + "distinct feature points: " + str(len(kps)))
     img_kp = cv2.drawKeypoints(img, kps, outImage=np.array([]), color=(0, 0, 255), flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
@@ -307,12 +307,25 @@ def massTrackFeaturePoints(d, angle_step, scale_step, detect_method=detect.extra
     plt.legend()
     plt.show()
 
-def compareImageInSameCategory(img_name, d, detect_method=detect.extractORBFeatures):
+def compareImageInSameCategory(img_name, d, detect_method=detect.extractORBFeatures, template_distinct_feature=False):
     if os.path.isdir(d) == False:
         print(TAG + d + " is not a directory")
         return 
+
+    d_type = DescriptorType.ORB
+    if detect_method == detect.extractSURFFeatures:
+        d_type = DescriptorType.SURF
+
     img = cv2.imread(img_name)
-    kp, des = detect_method(img)
+    #extract distinct method
+    if template_distinct_feature:
+        kp, des = detect.extractDistinctFeatures(img, detect_method)
+        #transfer to numpy array for matching
+        des = np.array(des)
+    else:
+        kp, des = detect_method(img)
+    if DEBUG:
+        print(TAG + "length of template image's features: " + str(len(des)))
     #read files into list
     images = [cv2.imread(os.path.join(d,name)) for name in os.listdir(d) if os.path.isfile(os.path.join(d, name))]
     #get keypoints and descriptors of every image
@@ -320,16 +333,10 @@ def compareImageInSameCategory(img_name, d, detect_method=detect.extractORBFeatu
         [print(TAG + "ALERT! NULL IMAGE") for i in images if i is None]
     features = [detect_method(i) for i in images if i is not None]
 
-    #initialize matcher
-    if detect_method == detect.extractSURFFeatures:
-        bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck = True)
-    else:
-        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
-
     #get  matches
 #    matches = [match.matchFeature(des, kp, d, k, DescriptorType.ORB) for (k,d) in features if d is not None]
 #    matches = [match.matchFeature(des, kp, d, k, DescriptorType.SURF) for (k,d) in features if d is not None]
-    matches = [bf.match(des, d) for (k,d) in features if d is not None]
+    matches = [match.BFMatchFeature(des, d, d_type) for (k,d) in features if d is not None]
     if DEBUG:
         [print(TAG + "number of matches: " + str(len(m))) for m in matches]
     print(TAG + "the number of feature points in template image: " + str(len(kp)))
@@ -337,3 +344,7 @@ def compareImageInSameCategory(img_name, d, detect_method=detect.extractORBFeatu
     if DEBUG:
         print(TAG + "display first image matches")
         match.drawMatches(img, kp, images[0], features[0][0], matches[0][:30], thickness=3, color=(255,0,0))
+
+
+def checkDistinctFeatureInSameCategory(img_name, d, detect_method=detect.extractORBFeatures):
+    compareImageInSameCategory(img_name, d, detect_method, True)

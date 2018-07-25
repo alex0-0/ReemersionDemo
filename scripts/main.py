@@ -29,10 +29,12 @@ img = cv2.imread("test.png")
 #
 #
 ##debug distinct feature points
-#test.testDistinctFeature(img)
+#test.testDistinctFeature(img, detect.extractSURFFeatures)
 
 #test.massTrackFeaturePoints("tmp/", 5, 0.1, detect.extractORBFeatures)
 #img = cv2.imread("bike_template.JPEG")
 #img1 = cv2.imread("bicycle/n02834778_9885.JPEG")
 #test.testMatch(img, img1, detect.extractORBFeatures)
-test.compareImageInSameCategory("bike_template.JPEG", "bicycle", detect.extractORBFeatures)
+
+#test.compareImageInSameCategory("bike_template.JPEG", "bicycle", detect.extractORBFeatures)
+test.checkDistinctFeatureInSameCategory("bike_template.JPEG", "bicycle", detect.extractORBFeatures)
