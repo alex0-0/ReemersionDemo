@@ -10,7 +10,7 @@ import test
 DEBUG = True
 TAG = "MAIN\t"
 
-img = cv2.imread("test.png")
+#img = cv2.imread("test.png")
 #img1 = cv2.imread("distorted.png")
 #
 ##save distorted image to default directory, i.e., distorted_img
@@ -38,3 +38,8 @@ img = cv2.imread("test.png")
 
 #test.compareImageInSameCategory("bike_template.JPEG", "bicycle", detect.extractORBFeatures)
 test.checkDistinctFeatureInSameCategory("bike_template.JPEG", "bicycle", detect.extractORBFeatures)
+
+#test custom matching method
+img = cv2.imread("bike_template.JPEG")
+distort.saveDistortedImages(img)
+test.checkDistinctFeatureInSameCategory("bike_template.JPEG", "distorted_img", detect.extractORBFeatures)

@@ -340,6 +340,8 @@ def compareImageInSameCategory(img_name, d, detect_method=detect.extractORBFeatu
         [print(TAG + "number of matches: " + str(len(m))) for m in matches]
     print(TAG + "the number of feature points in template image: " + str(len(kp)))
     print(TAG + "average matched feature point for " + str(len(features)) + " images is: " + str(sum(len(m) for m in matches) / len(features)))
+    print(TAG + "best matched image matches: " + str(len(max(matches,key=len))))
+    print(TAG + "worst matched image matches:: " + str(len(min(matches,key=len))))
     if DEBUG:
         print(TAG + "display first image matches")
         match.drawMatches(img, kp, images[0], features[0][0], matches[0][:30], thickness=3, color=(255,0,0))
