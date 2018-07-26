@@ -35,22 +35,22 @@ def trackDistort(img, des, distort_method, detect_method=detect.extractORBFeatur
     return features, matches
 
 #track the change on the number of feature points. des is descriptor of original image, used for matching, if not given, will calculate in method
-def trackRotate(img, detect_method=detect.extractORBFeatures, des = None):
+def trackRotate(img, detect_method=detect.extractORBFeatures, des=None):
     if des is None:
         kp, des = detect_method(img)
     return trackDistort(img, des, distort.rotateImage, detect_method)
 
-def trackScale(img, detect_method=detect.extractORBFeatures, des = None):
+def trackScale(img, detect_method=detect.extractORBFeatures, des=None):
     if des is None:
         kp, des = detect_method(img)
     return trackDistort(img, des, distort.scaleImage, detect_method)
 
-def trackAffine(img, detect_method=detect.extractORBFeatures, des = None):
+def trackAffine(img, detect_method=detect.extractORBFeatures, des=None):
     if des is None:
         kp, des = detect_method(img)
     return trackDistort(img, des, distort.affineImage, detect_method)
 
-def trackPerspective(img, detect_method=detect.extractORBFeatures, des = None):
+def trackPerspective(img, detect_method=detect.extractORBFeatures, des=None):
     if des is None:
         kp, des = detect_method(img)
         print("the number of feature points: " + str(len(kp)))
@@ -334,9 +334,8 @@ def compareImageInSameCategory(img_name, d, detect_method=detect.extractORBFeatu
     features = [detect_method(i) for i in images if i is not None]
 
     #get  matches
-#    matches = [match.matchFeature(des, kp, d, k, DescriptorType.ORB) for (k,d) in features if d is not None]
-#    matches = [match.matchFeature(des, kp, d, k, DescriptorType.SURF) for (k,d) in features if d is not None]
-    matches = [match.BFMatchFeature(des, d, d_type) for (k,d) in features if d is not None]
+    matches = [match.matchFeature(des, kp, d, k, d_type) for (k,d) in features if d is not None]
+#    matches = [match.BFMatchFeature(des, d, d_type) for (k,d) in features if d is not None]
     if DEBUG:
         [print(TAG + "number of matches: " + str(len(m))) for m in matches]
     print(TAG + "the number of feature points in template image: " + str(len(kp)))

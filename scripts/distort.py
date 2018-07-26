@@ -10,11 +10,12 @@ def rotateImage(img):
     kNum = 6
     (h, w) = img.shape[:2]
     (cX, cY) = (w // 2, h // 2)
-
+    #base rotateion angle
+    base = 5
 
     r = []
     for i in range(int(kNum/2)):
-        M1 = cv.getRotationMatrix2D((cX, cY),kStepAngle*i,1)
+        M1 = cv.getRotationMatrix2D((cX, cY),base+kStepAngle*i,1)
         cos = np.abs(M1[0, 0])
         sin = np.abs(M1[0, 1])
         # compute the new bounding dimensions of the image
@@ -27,7 +28,7 @@ def rotateImage(img):
 
         r.append(cv.warpAffine(img,M1,(nW,nH)))
 
-        M2 = cv.getRotationMatrix2D((cX, cY),-kStepAngle*i,1)
+        M2 = cv.getRotationMatrix2D((cX, cY),-(base+kStepAngle*i),1)
         cos = np.abs(M2[0, 0])
         sin = np.abs(M2[0, 1])
         # compute the new bounding dimensions of the image
