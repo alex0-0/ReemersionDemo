@@ -5,7 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from enum import Enum
 
-DEBUG = False
+#0: turn off debug mode
+#1: print out necessary debug log
+#2: print out verbose log
+DEBUG = 2   
 TAG = "MATCH\t"
 
 class DescriptorType(Enum):
@@ -18,7 +21,7 @@ def BFMatchFeature(des1, des2, d_type=DescriptorType.ORB):
     else:
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
 
-    if DEBUG:
+    if DEBUG > 0:
         print(TAG + "query key points size: " + str(len(des1)))
         print(TAG + "train key points size: " + str(len(des2)))
 
@@ -56,7 +59,7 @@ def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None):
     new_img[0:img1.shape[0],0:img1.shape[1]] = img1
     new_img[0:img2.shape[0],img1.shape[1]:img1.shape[1]+img2.shape[1]] = img2
 
-    if DEBUG:
+    if DEBUG > 0:
         print(TAG + "matches size: " + str(len(matches)))
         print(TAG + "query key points size: " + str(len(kp1)))
         print(TAG + "train key points size: " + str(len(kp2)))
@@ -81,3 +84,69 @@ def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None):
     plt.imshow(new_img)
     plt.show()
 
+"""return estimated origin of keypoints
+h_angle stands for horizontal angle change
+v_angle stands for vertical angle change
+"""
+def getCenter(kps, h_angle, v_angle):
+    a=0
+
+"""return average square distance from points to center and 
+   a list containing square distance from points to center
+
+   Args:
+    pts: points, a list containing the position of every points
+    center: center point, (x,y)
+"""
+def getAverageSquareDistance(pts, center):
+    (cx, cy) = center
+    r = [(x-cx)**2 + (y-cy)**2 for (x,y) in pts]
+    average = sum(r) / len(pts)
+    if DEBUG > 1:
+        print(TAG + "average square distance: " + str(average))
+        print(TAG + "square distance: " + str(r))
+
+    return average, r
+
+def decideWeithsBySquareDistance(center, kps):
+    pos = [k.pt for k in kps]
+    if DEBUG > 1:
+        print(TAG + "key points position: " + str(pos))
+    ave, dis = getAverageSquareDistance(pos, center)
+    return [d/ave for d in dis]
+
+
+def assignWeights(center, kps):
+    return decideWeithsBySquareDistance(center, kps)
+
+"""return changed normalized center( ps: for now we haven't yet consider rotation change brings difference to key points!!!)
+
+    Args:
+        ori_center: normalized original center, e.g., (image_width/2, image_height/2) is (0.5, 0.5)
+        h_angle: change on horizontal angle. Facing the scenery, the camera holder turning rightward around the scenery is defined as postive angle, and turning leftward as negtive angle.
+        v_angle: change on vertical angle. Facing the scenery, the camera holder turning upward around the scenery is defined as postive angle, and turning downward as negtive angle.
+"""
+def decideCenterByOrientation(ori_center, h_angle, v_angle):
+    (x, y) = ori_center 
+    if h_angle < 90 and h_angle > -90:
+        x = x * (1 - h_angle/90)
+    if v_angle < 90 and v_angle > -90:
+        y = y * (1 - h_angle/90)
+    x = 1 if x > 1 else x
+    y = 1 if y > 1 else y
+    return (x, y)
+
+def getWeightedMatchingConfidence(img_width, img_height, matches, h_angle, v_angle, template_kps):
+    (x, y) = decideCenterByOrientation((1/2, 1/2), h_angle, v_angle)
+    x = x * img_width
+    y = y * img_height
+
+    #get weights for every template keypoints
+    weights = assignWeights((x,y), template_kps)
+
+    if DEBUG > 1:
+        print(TAG + "weights: " + str(weights))
+
+    scores = [weights[m.trainIdx] for m in matches]
+
+    return (sum(scores) / len(template_kps))

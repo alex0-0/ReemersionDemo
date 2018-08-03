@@ -9,7 +9,10 @@ import os
 import matplotlib.pyplot as plt
 import glob
 
-DEBUG = True
+#0: turn off debug mode
+#1: print out necessary debug log
+#2: print out verbose log
+DEBUG = 1   
 TAG = "TEST\t"
 
 def testMatch(img_1, img_2, detect_method=detect.extractORBFeatures):
@@ -27,10 +30,31 @@ def testMatch(img_1, img_2, detect_method=detect.extractORBFeatures):
     #
     #cv2.imshow("match", img3)
     #cv2.waitKey(0)
-    if DEBUG:
+    if DEBUG > 0:
         print(TAG + "matches size: " + str(len(matches)))
         print(TAG + "query key points size: " + str(len(kp1)))
         print(TAG + "train key points size: " + str(len(kp2)))
     
     match.drawMatches(img_1,kp1,img_2,kp2,matches[:10], thickness=3, color=(255,0,0))
 
+def testWeightedMatching(query_img, template_img, h_angle, v_angle, detect_method=detect.extractORBFeatures):
+    #extract feature points
+    kp1, des1 = detect_method(query_img)
+    kp2, des2 = detect_method(template_img)
+    #match feature points
+    #cv.DescriptorMatcher.knnMatch(queryDescriptors, trainDescriptors, k[, mask[, compactResult]])
+    if detect_method == detect.extractORBFeatures:
+        matches = match.BFMatchFeature(des1, des2, DescriptorType.ORB)
+    elif detect_method == detect.extractSURFFeatures:
+        matches = match.BFMatchFeature(des1, des2, DescriptorType.SURF)
+
+    #assume two images have same size
+    height, width = template_img.shape[:2]
+    score = match.getWeightedMatchingConfidence(width, height, matches, h_angle, v_angle, kp2)
+
+    if DEBUG > 0:
+        print(TAG + "template feature points: " + str(len(des2)))
+        print(TAG + "matched points: " + str(len(matches)))
+        print(TAG + "precision: " + str(len(matches)/len(des2)))
+
+    print(TAG + "testWeightedMatching: weighted score is " + str(score))

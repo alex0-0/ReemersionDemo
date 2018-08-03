@@ -17,6 +17,7 @@ def extractSURFFeatures(img):
 def extractORBFeatures(img):
     orb = cv2.ORB_create(edgeThreshold=15, patchSize=31, nlevels=8, fastThreshold=90, scaleFactor=1.2, WTA_K=2,scoreType=cv2.ORB_HARRIS_SCORE, firstLevel=0, nfeatures=500)
     
+    #kp[0].pt is the postion of key point in the image
     kp = orb.detect(img)
     kp, des = orb.compute(img, kp)
 
