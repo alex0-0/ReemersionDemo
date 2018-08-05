@@ -37,7 +37,7 @@ def testMatch(img_1, img_2, detect_method=detect.extractORBFeatures):
     
     match.drawMatches(img_1,kp1,img_2,kp2,matches[:10], thickness=3, color=(255,0,0))
 
-def testWeightedMatching(query_img, template_img, h_angle, v_angle, detect_method=detect.extractORBFeatures):
+def testWeightedMatching(query_img, template_img, h_angle, v_angle, distance_threshold=50, detect_method=detect.extractORBFeatures):
     #extract feature points
     kp1, des1 = detect_method(query_img)
     kp2, des2 = detect_method(template_img)
@@ -48,13 +48,16 @@ def testWeightedMatching(query_img, template_img, h_angle, v_angle, detect_metho
     elif detect_method == detect.extractSURFFeatures:
         matches = match.BFMatchFeature(des1, des2, DescriptorType.SURF)
 
+    filtered_matches = [m for m in matches if m.distance<distance_threshold]
+
     #assume two images have same size
     height, width = template_img.shape[:2]
-    score = match.getWeightedMatchingConfidence(width, height, matches, h_angle, v_angle, kp2)
+    score = match.getWeightedMatchingConfidence(width, height, filtered_matches, h_angle, v_angle, kp2)
 
     if DEBUG > 0:
         print(TAG + "template feature points: " + str(len(des2)))
         print(TAG + "matched points: " + str(len(matches)))
         print(TAG + "precision: " + str(len(matches)/len(des2)))
+        print(TAG + "threshold: " + str(distance_threshold) + "\tfiltered matched points: " + str(len(filtered_matches)))
 
     print(TAG + "testWeightedMatching: weighted score is " + str(score))
