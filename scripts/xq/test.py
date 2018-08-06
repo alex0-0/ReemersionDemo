@@ -48,7 +48,7 @@ def testMatch(img_1, img_2, detect_method=detect.extractORBFeatures):
         distance_threshold: filter out matches whose distance is larger than the threshold
         detect_method: detect method used for finding feature points
         show_image: decide if the result image should be presented or not
-        matches_display_num: how many matches should be display on image
+        matches_display_num: how many matches should be displayed on image
 """
 def testWeightedMatching(query_img, template_img, h_angle, v_angle, distance_threshold=50, detect_method=detect.extractORBFeatures, show_image=False, matches_display_num=0):
     #extract feature points
