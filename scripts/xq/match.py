@@ -28,7 +28,7 @@ def BFMatchFeature(des1, des2, d_type=DescriptorType.ORB):
     m = bf.match(des1, des2)
     return m
 
-def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None): 
+def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None, show_center=False): 
     """Draws lines between matching keypoints of two images.  
     Keypoints not in a matching pair are not drawn.
 
@@ -79,6 +79,16 @@ def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None):
         cv2.line(new_img, end1, end2, c, thickness)
         cv2.circle(new_img, end1, r, c, thickness)
         cv2.circle(new_img, end2, r, c, thickness)
+
+    if show_center:
+        pt1 = [kp1[m.queryIdx].pt for m in matches]
+        pt2 = [np.round(kp2[m.trainIdx].pt).astype(int)+np.array([img1.shape[1],0]) for m in matches]
+        mean_x1 = sum([p[0] for p in pt1]) / len(matches)
+        mean_y1 = sum([p[1] for p in pt1]) / len(matches)
+        mean_x2 = sum([p[0] for p in pt2]) / len(matches)
+        mean_y2 = sum([p[1] for p in pt2]) / len(matches)
+        cv2.circle(new_img, tuple(np.round((mean_x1, mean_y1)).astype(int)), r, (255,255,255), thickness)
+        cv2.circle(new_img, tuple(np.round((mean_x2, mean_y2)).astype(int)), r, (255,255,255), thickness)
     
     plt.figure(figsize=(15,15))
     plt.imshow(new_img)

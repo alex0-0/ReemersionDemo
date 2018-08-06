@@ -25,7 +25,7 @@ kp1, des1 = detect.extractORBFeatures(img1)
 #print("matched feature number: " + str(len(matches)))
 #match.drawMatches(img1,kp1,img2,kp2,matches, thickness=1, color=(255,0,0))
 
-test.testWeightedMatching(img1, img2, 60, 0, 50, show_image=True)
+test.testWeightedMatching(img1, img2, 60, 0, 50, show_image=True, matches_display_num=10)
 
 #test different threshold
 for d in range(50, 100, 10):
