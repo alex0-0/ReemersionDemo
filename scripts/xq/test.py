@@ -37,7 +37,7 @@ def testMatch(img_1, img_2, detect_method=detect.extractORBFeatures):
     
     match.drawMatches(img_1,kp1,img_2,kp2,matches[:10], thickness=3, color=(255,0,0))
 
-def testWeightedMatching(query_img, template_img, h_angle, v_angle, distance_threshold=50, detect_method=detect.extractORBFeatures):
+def testWeightedMatching(query_img, template_img, h_angle, v_angle, distance_threshold=50, detect_method=detect.extractORBFeatures, show_image=False):
     #extract feature points
     kp1, des1 = detect_method(query_img)
     kp2, des2 = detect_method(template_img)
@@ -47,8 +47,14 @@ def testWeightedMatching(query_img, template_img, h_angle, v_angle, distance_thr
         matches = match.BFMatchFeature(des1, des2, DescriptorType.ORB)
     elif detect_method == detect.extractSURFFeatures:
         matches = match.BFMatchFeature(des1, des2, DescriptorType.SURF)
-
+    
+    #arrange matches by its distance
+    matches = sorted(matches, key=lambda m:m.distance)
     filtered_matches = [m for m in matches if m.distance<distance_threshold]
+
+    #display 10 best matches
+    if show_image:
+        match.drawMatches(query_img,kp1,template_img,kp2,matches[:10], thickness=3, color=(255,0,0))
 
     #assume two images have same size
     height, width = template_img.shape[:2]
