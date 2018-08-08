@@ -63,6 +63,24 @@ def testMatch(img_1, img_2, detect_method=detect.extractORBFeatures):
         show_image: decide if the result image should be presented or not
         matches_display_num: how many matches should be displayed on image
 """
+
+def findMatches(query_img,template_img,detect_method=detect.extractORBFeatures):
+    kp1, des1 = detect_method(query_img)
+    kp2, des2 = detect_method(template_img)
+    #match feature points
+    #cv.DescriptorMatcher.knnMatch(queryDescriptors, trainDescriptors, k[, mask[, compactResult]])
+    if detect_method == detect.extractORBFeatures:
+        matches = match.BFMatchFeature(des1, des2, DescriptorType.ORB)
+    elif detect_method == detect.extractSURFFeatures:
+        matches = match.BFMatchFeature(des1, des2, DescriptorType.SURF)
+    return matches
+
+def filterFP(matches, distance_threshold):
+    matches = sorted(matches, key=lambda m:m.distance)
+    filtered_matches = [m for m in matches if m.distance<distance_threshold]
+    return filtered_matches
+
+
 def testWeightedMatching(query_img, template_img, h_angle, v_angle, distance_threshold=50, detect_method=detect.extractORBFeatures, show_image=False, matches_display_num=0):
     #extract feature points
     kp1, des1 = detect_method(query_img)
