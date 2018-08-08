@@ -114,6 +114,8 @@ def testDetect(img, detect_method=detect.extractORBFeatures, title=None):
     t = "image with key points"
     if title != None:
         t = title
+    cv2.namedWindow(t, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(t,600,600)
     cv2.imshow(t, img_kp)
     cv2.waitKey(0)
 

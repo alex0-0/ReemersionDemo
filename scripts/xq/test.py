@@ -15,6 +15,19 @@ import glob
 DEBUG = 1   
 TAG = "TEST\t"
 
+def testDetect(img, detect_method=detect.extractORBFeatures, title=None):
+    kps, des = detect_method(img)
+    img_kp = cv2.drawKeypoints(img, kps, outImage=np.array([]), color=(0, 0, 255), flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+    #display detected feature points
+    t = "image with key points"
+    if title != None:
+        t = title
+    cv2.namedWindow(t, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(t,600,600)
+    cv2.imshow(t, img_kp)
+    cv2.waitKey(0)
+
 def testMatch(img_1, img_2, detect_method=detect.extractORBFeatures):
     #extract feature points
     kp1, des1 = detect_method(img_1)
@@ -64,13 +77,15 @@ def testWeightedMatching(query_img, template_img, h_angle, v_angle, distance_thr
     #arrange matches by its distance
     matches = sorted(matches, key=lambda m:m.distance)
     filtered_matches = [m for m in matches if m.distance<distance_threshold]
+    if DEBUG > 0:
+        print(TAG + "average distance: " + str(sum([m.distance for m in filtered_matches])/len(filtered_matches)))
 
     #display 10 best matches
     if show_image:
         m = matches
         if matches_display_num > 0:
             m = matches[:matches_display_num]
-        match.drawMatches(query_img,kp1,template_img,kp2,m, thickness=3, color=(255,0,0), show_center=True)
+        match.drawMatches(query_img,kp1,template_img,kp2,m, thickness=2, color=(255,0,0), show_center=True)
 
     #assume two images have same size
     height, width = template_img.shape[:2]

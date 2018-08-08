@@ -12,12 +12,12 @@ TAG = "MAIN\t"
 
 #img1 = cv2.imread("000.JPG")
 #img2 = cv2.imread("090.JPG")
-img1 = cv2.imread("lamp_c.JPG")
-img2 = cv2.imread("lamp_a.JPG")
+img1 = cv2.imread("-30.JPG")
+img2 = cv2.imread("000.JPG")
 print(img1.shape)
 print(img2.shape)
 
-kp1, des1 = detect.extractORBFeatures(img1)
+#kp1, des1 = detect.extractORBFeatures(img1)
 #kp2, des2 = detect.extractORBFeatures(img2)
 #matches = match.BFMatchFeature(des1, des2, DescriptorType.ORB)
 #print("image 1 feature number: " + str(len(kp1)))
@@ -25,11 +25,11 @@ kp1, des1 = detect.extractORBFeatures(img1)
 #print("matched feature number: " + str(len(matches)))
 #match.drawMatches(img1,kp1,img2,kp2,matches, thickness=1, color=(255,0,0))
 
-test.testWeightedMatching(img1, img2, 60, 0, 50, show_image=True, matches_display_num=10)
+test.testWeightedMatching(img1, img2, 60, 0, 50, show_image=True, detect_method=detect.extractSURFFeatures, matches_display_num=100)
 
 #test different threshold
 for d in range(50, 100, 10):
-    test.testWeightedMatching(img1, img2, 60, 0, d)
+    test.testWeightedMatching(img1, img2, 60, 0, d, detect_method=detect.extractSURFFeatures)
 
 """
 KeyPoint Parameters 
@@ -42,3 +42,6 @@ _class_id	object id
 """
 #for k in kp1:
 #    print(k.octave)
+
+test.testDetect(img1, detect_method=detect.extractSURFFeatures)
+test.testDetect(img2, detect_method=detect.extractSURFFeatures)

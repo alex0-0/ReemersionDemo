@@ -8,7 +8,7 @@ from enum import Enum
 #0: turn off debug mode
 #1: print out necessary debug log
 #2: print out verbose log
-DEBUG = 1   
+DEBUG = 0   
 TAG = "MATCH\t"
 
 class DescriptorType(Enum):
