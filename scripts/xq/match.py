@@ -8,7 +8,7 @@ from enum import Enum
 #0: turn off debug mode
 #1: print out necessary debug log
 #2: print out verbose log
-DEBUG = 0   
+DEBUG = 1   
 TAG = "MATCH\t"
 
 class DescriptorType(Enum):
@@ -27,6 +27,57 @@ def BFMatchFeature(des1, des2, d_type=DescriptorType.ORB):
 
     m = bf.match(des1, des2)
     return m
+
+def matchFeature(des1, kp1, des2, kp2, d_type=DescriptorType.ORB):
+    # create BFMatcher object
+    '''
+    By default, BFMatcher uses cv2.NORM_L2. It is good for SIFT, SURF etc (cv2.NORM_L1 is also there). For binary string based descriptors like ORB, BRIEF, BRISK etc, cv2.NORM_HAMMING should be used, which used Hamming distance as measurement. If ORB is using WTA_K == 3 or 4, cv2.NORM_HAMMING2 should be used.
+    '''
+    def distanceType(x):
+        return {
+                DescriptorType.ORB : cv2.NORM_HAMMING,
+                DescriptorType.SURF : cv2.NORM_L2
+                }.get(x, cv2.NORM_HAMMING)
+
+    if DEBUG:
+        print(TAG + "descriptor type: " + str(d_type))
+
+    bf = cv2.BFMatcher(distanceType(d_type))
+#    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+
+    
+    # Match descriptors.
+    #cv.DescriptorMatcher.knnMatch(	queryDescriptors, trainDescriptors, k[, mask[, compactResult]]	)
+    m1 = bf.knnMatch(des1, des2, k=2)
+#    m2 = bf.knnMatch(des2, des1, k=2)
+    
+    # Sort them in the order of their distance.
+    #matches = sorted(matches, key = lambda x:x.distance)
+
+    if DEBUG > 0:
+        print(TAG + "matchFeature: number of original matches is " + str(len(m1)))
+    #ratio test
+    m1 = ratioTest(m1)
+#    m2 = ratioTest(m2)
+
+    r = [m[0] for m in m1]
+    if DEBUG > 0:
+        print(TAG + "matchFeature: number of returned matches is " + str(len(r)))
+
+    return r
+
+#if the two best matches are relatively close in distance,
+#then there exists a possibility that we make an error if we select one or the other.
+def ratioTest(m):
+    #threshold
+    kRatio = 0.7
+    r = []
+
+    for a,b in m:
+        if a.distance < kRatio * b.distance:
+            r.append([a])
+    
+    return r
 
 def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None, show_center=False): 
     """Draws lines between matching keypoints of two images.  

@@ -23,8 +23,7 @@ imgP30 = cv2.imread("030.JPG")
 imgN30 = cv2.imread("-30.JPG")
 img180 = cv2.imread("180.JPG")
 
-print(img1.shape)
-print(img2.shape)
+test.testMatch(img1, img2, detect.extractSURFFeatures)
 
 #kp1, des1 = detect.extractORBFeatures(img1)
 #kp2, des2 = detect.extractORBFeatures(img2)

@@ -50,20 +50,6 @@ def testMatch(img_1, img_2, detect_method=detect.extractORBFeatures):
     
     match.drawMatches(img_1,kp1,img_2,kp2,matches[:10], thickness=3, color=(255,0,0))
 
-"""
-    test how the weight assignment work
-
-    Args:
-        query_img: query image
-        template_img: template image
-        h_angle: horizontal angle change
-        v_angle: vertical angle change
-        distance_threshold: filter out matches whose distance is larger than the threshold
-        detect_method: detect method used for finding feature points
-        show_image: decide if the result image should be presented or not
-        matches_display_num: how many matches should be displayed on image
-"""
-
 def findMatches(query_img,template_img,detect_method=detect.extractORBFeatures):
     kp1, des1 = detect_method(query_img)
     kp2, des2 = detect_method(template_img)
@@ -81,6 +67,19 @@ def filterFP(matches, distance_threshold):
     return filtered_matches
 
 
+"""
+    test how the weight assignment work
+
+    Args:
+        query_img: query image
+        template_img: template image
+        h_angle: horizontal angle change
+        v_angle: vertical angle change
+        distance_threshold: filter out matches whose distance is larger than the threshold
+        detect_method: detect method used for finding feature points
+        show_image: decide if the result image should be presented or not
+        matches_display_num: how many matches should be displayed on image
+"""
 def testWeightedMatching(query_img, template_img, h_angle, v_angle, distance_threshold=50, detect_method=detect.extractORBFeatures, show_image=False, matches_display_num=0):
     #extract feature points
     kp1, des1 = detect_method(query_img)
