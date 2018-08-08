@@ -68,13 +68,11 @@ def matchFeature(des1, kp1, des2, kp2, d_type=DescriptorType.ORB):
 
 #if the two best matches are relatively close in distance,
 #then there exists a possibility that we make an error if we select one or the other.
-def ratioTest(m):
-    #threshold
-    kRatio = 0.7
+def ratioTest(m, threshold=0.7):
     r = []
 
     for a,b in m:
-        if a.distance < kRatio * b.distance:
+        if a.distance < threshold * b.distance:
             r.append([a])
     
     return r

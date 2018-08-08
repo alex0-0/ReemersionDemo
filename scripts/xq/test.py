@@ -48,7 +48,7 @@ def testMatch(img_1, img_2, detect_method=detect.extractORBFeatures):
         print(TAG + "query key points size: " + str(len(kp1)))
         print(TAG + "train key points size: " + str(len(kp2)))
     
-    match.drawMatches(img_1,kp1,img_2,kp2,matches[:10], thickness=3, color=(255,0,0))
+    match.drawMatches(img_1,kp1,img_2,kp2,matches, thickness=3, color=(255,0,0))
 
 def findMatches(query_img,template_img,detect_method=detect.extractORBFeatures):
     kp1, des1 = detect_method(query_img)
@@ -66,6 +66,17 @@ def filterFP(matches, distance_threshold):
     filtered_matches = [m for m in matches if m.distance<distance_threshold]
     return filtered_matches
 
+def testMatchWithDistanceAndRatio(img1, img2, detect_method=detect.extractORBFeatures, distance_threshold=50, ratio_threshold=0.8):
+    kp1, des1 = detect_method(img1)
+    kp2, des2 = detect_method(img2)
+    if detect_method == detect.extractORBFeatures:
+        bf = cv2.BFMatcher(cv2.NORM_HAMMING)
+    elif detect_method == detect.extractSURFFeatures:
+        bf = cv2.BFMatcher(cv2.NORM_L2)
+    matches = bf.knnMatch(des1, des2, k=2)
+    matches = [m for m in matches if m is not None and m[0].distance < distance_threshold]
+    matches = match.ratioTest(matches, ratio_threshold)
+    return [m[0] for m in matches]
 
 """
     test how the weight assignment work
