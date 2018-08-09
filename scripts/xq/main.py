@@ -21,9 +21,11 @@ imgP15 = cv2.imread("015.JPG")
 imgN15 = cv2.imread("-15.JPG")
 imgP30 = cv2.imread("030.JPG")
 imgN30 = cv2.imread("-30.JPG")
+imgP45 = cv2.imread("045.JPG")
+imgN45 = cv2.imread("-45.JPG")
 img180 = cv2.imread("180.JPG")
 
-test.testMatch(img1, img2, detect.extractSURFFeatures)
+#test.testMatch(img1, img2, detect.extractSURFFeatures)
 
 #kp1, des1 = detect.extractORBFeatures(img1)
 #kp2, des2 = detect.extractORBFeatures(img2)
@@ -39,18 +41,37 @@ m000_P15=test.findMatches(imgP15,img000);
 m000_N15=test.findMatches(imgN15,img000);
 m000_P30=test.findMatches(imgP30,img000);
 m000_N30=test.findMatches(imgN30,img000);
+m000_P45=test.findMatches(imgP45,img000);
+m000_N45=test.findMatches(imgN45,img000);
 m000_180=test.findMatches(img180,img000);
 
 
-print("%s\t%s\t%s\t%s\t%s\t%s" % ("dist", "+15", "-15", "+30","-30","180"))
+print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180"))
 #test different threshold
 for d in range(20, 101, 10):
     fm000_P15=test.filterFP(m000_P15,d);
     fm000_N15=test.filterFP(m000_N15,d);
     fm000_P30=test.filterFP(m000_P30,d);
     fm000_N30=test.filterFP(m000_N30,d);
+    fm000_P45=test.filterFP(m000_P45,d);
+    fm000_N45=test.filterFP(m000_N45,d);
     fm000_180=test.filterFP(m000_180,d);
-    print("%d\t%d\t%d\t%d\t%d\t%d" % (d, len(fm000_P15), len(fm000_N15), len(fm000_P30), len(fm000_N30), len(fm000_180)))
+    print("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d" % (d, len(fm000_P15), len(fm000_N15), len(fm000_P30), len(fm000_N30),len(fm000_P45), len(fm000_N45), len(fm000_180)))
+
+print("\nRatio test (dist_threshold=50)")
+print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % ("ratio", "+15", "-15", "+30","-30","+45","-45","180"))
+
+for rt in np.arange(0.5, 1, 0.1):
+    rm000_P15=test.testMatchWithDistanceAndRatio(imgP15, img000, detect_method=detect.extractORBFeatures, distance_threshold=50, ratio_threshold=rt)
+    rm000_N15=test.testMatchWithDistanceAndRatio(imgN15, img000, detect_method=detect.extractORBFeatures, distance_threshold=50, ratio_threshold=rt)
+    rm000_P30=test.testMatchWithDistanceAndRatio(imgP30, img000, detect_method=detect.extractORBFeatures, distance_threshold=50, ratio_threshold=rt)
+    rm000_N30=test.testMatchWithDistanceAndRatio(imgN30, img000, detect_method=detect.extractORBFeatures, distance_threshold=50, ratio_threshold=rt)
+    rm000_P45=test.testMatchWithDistanceAndRatio(imgP45, img000, detect_method=detect.extractORBFeatures, distance_threshold=50, ratio_threshold=rt)
+    rm000_N45=test.testMatchWithDistanceAndRatio(imgN45, img000, detect_method=detect.extractORBFeatures, distance_threshold=50, ratio_threshold=rt)
+    rm000_180=test.testMatchWithDistanceAndRatio(img180, img000, detect_method=detect.extractORBFeatures, distance_threshold=50, ratio_threshold=rt)
+    print("%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%d" % (rt, len(rm000_P15), len(rm000_N15), len(rm000_P30), len(rm000_N30),len(rm000_P45), len(rm000_N45), len(rm000_180)))
+
+
 
 
 #test.testWeightedMatching(img1, img2, 60, 0, d, detect_method=detect.extractSURFFeatures)
@@ -67,5 +88,5 @@ _class_id	object id
 #for k in kp1:
 #    print(k.octave)
 
-test.testDetect(img1, detect_method=detect.extractSURFFeatures)
-test.testDetect(img2, detect_method=detect.extractSURFFeatures)
+#test.testDetect(img1, detect_method=detect.extractSURFFeatures)
+#test.testDetect(img2, detect_method=detect.extractSURFFeatures)
