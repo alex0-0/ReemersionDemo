@@ -273,8 +273,8 @@ def getWeightedMatchingConfidence(img_width, img_height, matches, h_angle, v_ang
         query_kps:  query key points, corresponding to match,queryIdx
         template_kps: template key points, corresponding to match,trainIdx
         neighbor_num: the number of neighbors which are taken into consideration
-        h_angle: change on horizontal angle. Facing the scenery, the camera holder turning rightward around the scenery is defined as postive angle, and turning leftward as negtive angle.
-        v_angle: change on vertical angle. Facing the scenery, the camera holder turning downward around the scenery is defined as postive angle, and turning upward as negtive angle.
+        h_angle: change on horizontal angle. Facing the scenery, the camera holder moving rightward around the scenery is defined as postive angle, and moving leftward as negtive angle.
+        v_angle: change on vertical angle. Facing the scenery, the camera holder moving upward around the scenery is defined as postive angle, and moving downward as negtive angle.
         blocked_threshold: threshold used to judge if an unmatched feature point is blocked
 """
 def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neighbor_num=10, h_angle=0, v_angle=0, blocked_threshold=0.8):
@@ -287,9 +287,9 @@ def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neig
     neighbors = findNeighbors(template_kps, neighbor_num)
 
     #which part of neighbors should be checked. 0, left, 1, right, 2, up, 3, down
-    if h_angle > 0:
+    if h_angle < 0:
         check_index = 0
-    elif h_angle < 0:
+    elif h_angle > 0:
         check_index = 1
     elif v_angle > 0:
         check_index = 2
