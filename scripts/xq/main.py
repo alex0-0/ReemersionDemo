@@ -75,13 +75,14 @@ for rt in np.arange(0.5, 1, 0.1):
 print("\nDistance test (ratio_threshold=1.0)")
 print("%s\t%s\t%s\t%s\t%s\t%s" % ("dist", "+15", "-15", "+30","-30","180"))
 rt = 1.0
+si = False
 #test different threshold
 for d in range(20, 101, 10):
-    fm000_P15=test.testMatchWithDistanceAndRatio(img000, imgP15, distance_threshold=d, ratio_threshold=1.0, show_image=True, matches_display_num=100);
-    fm000_N15=test.testMatchWithDistanceAndRatio(img000, imgN15, distance_threshold=d, ratio_threshold=1.0, show_image=True, matches_display_num=100);
-    fm000_P30=test.testMatchWithDistanceAndRatio(img000, imgP30, distance_threshold=d, ratio_threshold=1.0, show_image=True, matches_display_num=100);
-    fm000_N30=test.testMatchWithDistanceAndRatio(img000, imgN30, distance_threshold=d, ratio_threshold=1.0, show_image=True, matches_display_num=100);
-    fm000_180=test.testMatchWithDistanceAndRatio(img000, img180, distance_threshold=d, ratio_threshold=1.0, show_image=True, matches_display_num=100);
+    fm000_P15=test.testMatchWithDistanceAndRatio(imgP15, img000, distance_threshold=d, ratio_threshold=1.1, show_image=si, matches_display_num=100);
+    fm000_N15=test.testMatchWithDistanceAndRatio(imgN15, img000, distance_threshold=d, ratio_threshold=1.1, show_image=si, matches_display_num=100);
+    fm000_P30=test.testMatchWithDistanceAndRatio(imgP30, img000, distance_threshold=d, ratio_threshold=1.1, show_image=si, matches_display_num=100);
+    fm000_N30=test.testMatchWithDistanceAndRatio(imgN30, img000, distance_threshold=d, ratio_threshold=1.1, show_image=si, matches_display_num=100);
+    fm000_180=test.testMatchWithDistanceAndRatio(img180, img000, distance_threshold=d, ratio_threshold=1.1, show_image=si, matches_display_num=100);
     print("%d\t%d\t%d\t%d\t%d\t%d" % (d, len(fm000_P15), len(fm000_N15), len(fm000_P30), len(fm000_N30), len(fm000_180)))
 #test.testWeightedMatching(img1, img2, 60, 0, d, detect_method=detect.extractSURFFeatures)
 
