@@ -8,7 +8,7 @@ from enum import Enum
 #0: turn off debug mode
 #1: print out necessary debug log
 #2: print out verbose log
-DEBUG = 0   
+DEBUG = 0
 TAG = "MATCH\t"
 
 class DescriptorType(Enum):
@@ -143,12 +143,74 @@ def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None, show_c
     plt.imshow(new_img)
     plt.show()
 
-"""return estimated origin of keypoints
-h_angle stands for horizontal angle change
-v_angle stands for vertical angle change
+"""return center of a list of key points
+
+    Args:
+        kps: a list of key points
 """
-def getCenter(kps, h_angle, v_angle):
-    a=0
+def getCenter(kps):
+    pts = [k.pt for k in kps]
+    center = (sum([pt[0] for pt in pts])/len(pt), sum([pt[1] for pt in pts])/len(pts))
+
+    return center
+
+"""return a list of sub-lists which contain k neighbor peers in four sub-fields of each key point, i.e., up-right, up-left, below-left, below-right. Key points in each field are stored in one list
+
+    Args:
+        kps:        a list of KeyPoints
+        n:          the number of logged closest feature points in each sub-field
+
+    Return:
+        [[[up-right neighbors], [up-left neighbors], [below-left neighbors], [below-right neighbors]],[[...],[...],[...],[...]]...]
+"""
+def findNeighbors(kps, n):
+    def getSquareDistance(pt1, pt2):
+        return (pt1[0] - pt2[0])**2 + (pt1[1] - pt2[1])**2
+    r = []
+    for k in kps:
+        dist= [getSquareDistance(k.pt, kp.pt) for kp in kps]
+        #up-right
+        ur = []
+        #up-left
+        ul = []
+        #below-left
+        bl = []
+        #below-right
+        br = []
+        for i in range(0,len(kps)):
+            d = kps[i]
+            if d == k:
+                continue
+            if d.pt[0] > k.pt[0]:
+                #up-right
+                if (d.pt[1] < k.pt[1]):
+                    ur.append(i)
+                #below-right
+                else:
+                    br.append(i)
+            else:
+                #up-left
+                if d.pt[1] < k.pt[1]:
+                    ul.append(i)
+                #below-left
+                else:
+                    bl.append(i)
+        sorted(ur, key = lambda x:dist[x])
+        sorted(ul, key = lambda x:dist[x])
+        sorted(br, key = lambda x:dist[x])
+        sorted(bl, key = lambda x:dist[x])
+        if DEBUG > 1:
+            print(TAG + "point position: " + str([kp.pt for kp in kps]))
+            print(TAG + "point distance: " + str(dist))
+            print(TAG + "up right: " + str(ur))
+            print(TAG + "up left: " + str(ul))
+            print(TAG + "below left: " + str(bl))
+            print(TAG + "below right: " + str(br))
+
+        r.append([ur[:n], ul[:n], bl[:n], br[:n]])
+
+    return r
+
 
 """return average square distance from points to center and 
    a list containing square distance from points to center

@@ -147,3 +147,13 @@ def testWeightedMatching(query_img, template_img, h_angle, v_angle, distance_thr
         print(TAG + "threshold: " + str(distance_threshold) + "\tfiltered matched points: " + str(len(filtered_matches)))
 
     print(TAG + "testWeightedMatching: weighted score is " + str(score))
+
+def testFindNeighbors(img, neighboring_num=10, detect_method=detect.extractORBFeatures):
+    kp,des = detect_method(img)
+    neighbor_points = match.findNeighbors(kp, neighboring_num)
+    for i in range(len(kp)):
+        print(TAG + "feature point: " + str(kp[i].pt))
+        print(TAG + "up right: " + str([kp[np].pt for np in neighbor_points[i][0]]))
+        print(TAG + "up left: " + str([kp[np].pt for np in neighbor_points[i][1]]))
+        print(TAG + "below left: " + str([kp[np].pt for np in neighbor_points[i][2]]))
+        print(TAG + "below right: " + str([kp[np].pt for np in neighbor_points[i][3]]))
