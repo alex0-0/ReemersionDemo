@@ -154,14 +154,14 @@ def getCenter(kps):
 
     return center
 
-"""return a list of sub-lists which contain k neighbor peers in four sub-fields of each key point, i.e., up-right, up-left, below-left, below-right. Key points in each field are stored in one list
+"""return a list of sub-lists which contain k neighbor peers in four sub-fields of each key point, i.e., left, right, up, down. Key points in each field are stored in one list
 
     Args:
         kps:        a list of KeyPoints
         n:          the number of logged closest feature points in each sub-field
 
     Return:
-        [[[up-right neighbors], [up-left neighbors], [below-left neighbors], [below-right neighbors]],[[...],[...],[...],[...]]...]
+        [[[left neighbors], [right neighbors], [up neighbors], [down neighbors]],[[...],[...],[...],[...]]...]
 """
 def findNeighbors(kps, n):
     def getSquareDistance(pt1, pt2):
@@ -169,45 +169,39 @@ def findNeighbors(kps, n):
     r = []
     for k in kps:
         dist= [getSquareDistance(k.pt, kp.pt) for kp in kps]
-        #up-right
-        ur = []
-        #up-left
-        ul = []
-        #below-left
-        bl = []
-        #below-right
-        br = []
+        #right
+        right = []
+        #left
+        left = []
+        #up
+        up = []
+        #down
+        down = []
         for i in range(0,len(kps)):
             d = kps[i]
             if d == k:
                 continue
             if d.pt[0] > k.pt[0]:
-                #up-right
-                if (d.pt[1] < k.pt[1]):
-                    ur.append(i)
-                #below-right
-                else:
-                    br.append(i)
+                right.append(i)
             else:
-                #up-left
-                if d.pt[1] < k.pt[1]:
-                    ul.append(i)
-                #below-left
-                else:
-                    bl.append(i)
-        sorted(ur, key = lambda x:dist[x])
-        sorted(ul, key = lambda x:dist[x])
-        sorted(br, key = lambda x:dist[x])
-        sorted(bl, key = lambda x:dist[x])
+                left.append(i)
+            if (d.pt[1] < k.pt[1]):
+                up.append(i)
+            else:
+                down.append(i)
+        sorted(left, key = lambda x:dist[x])
+        sorted(right, key = lambda x:dist[x])
+        sorted(up, key = lambda x:dist[x])
+        sorted(down, key = lambda x:dist[x])
         if DEBUG > 1:
             print(TAG + "point position: " + str([kp.pt for kp in kps]))
             print(TAG + "point distance: " + str(dist))
-            print(TAG + "up right: " + str(ur))
-            print(TAG + "up left: " + str(ul))
-            print(TAG + "below left: " + str(bl))
-            print(TAG + "below right: " + str(br))
+            print(TAG + "left: " + str(left))
+            print(TAG + "right: " + str(right))
+            print(TAG + "up: " + str(up))
+            print(TAG + "down: " + str(down))
 
-        r.append([ur[:n], ul[:n], bl[:n], br[:n]])
+        r.append([left[:n], right[:n], up[:n], down[:n]])
 
     return r
 

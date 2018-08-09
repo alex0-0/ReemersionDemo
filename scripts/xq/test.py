@@ -153,7 +153,7 @@ def testFindNeighbors(img, neighboring_num=10, detect_method=detect.extractORBFe
     neighbor_points = match.findNeighbors(kp, neighboring_num)
     for i in range(len(kp)):
         print(TAG + "feature point: " + str(kp[i].pt))
-        print(TAG + "up right: " + str([kp[np].pt for np in neighbor_points[i][0]]))
-        print(TAG + "up left: " + str([kp[np].pt for np in neighbor_points[i][1]]))
-        print(TAG + "below left: " + str([kp[np].pt for np in neighbor_points[i][2]]))
-        print(TAG + "below right: " + str([kp[np].pt for np in neighbor_points[i][3]]))
+        print(TAG + "left: " + str([kp[np].pt for np in neighbor_points[i][0]]))
+        print(TAG + "right: " + str([kp[np].pt for np in neighbor_points[i][1]]))
+        print(TAG + "up: " + str([kp[np].pt for np in neighbor_points[i][2]]))
+        print(TAG + "down: " + str([kp[np].pt for np in neighbor_points[i][3]]))
