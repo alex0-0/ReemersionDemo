@@ -8,7 +8,7 @@ from enum import Enum
 #0: turn off debug mode
 #1: print out necessary debug log
 #2: print out verbose log
-DEBUG = 1   
+DEBUG = 0   
 TAG = "MATCH\t"
 
 class DescriptorType(Enum):
@@ -129,7 +129,7 @@ def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None, show_c
         cv2.circle(new_img, end1, r, c, thickness)
         cv2.circle(new_img, end2, r, c, thickness)
 
-    if show_center:
+    if show_center and len(matches) > 0:
         pt1 = [kp1[m.queryIdx].pt for m in matches]
         pt2 = [np.round(kp2[m.trainIdx].pt).astype(int)+np.array([img1.shape[1],0]) for m in matches]
         mean_x1 = sum([p[0] for p in pt1]) / len(matches)

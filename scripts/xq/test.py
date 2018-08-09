@@ -66,7 +66,19 @@ def filterFP(matches, distance_threshold):
     filtered_matches = [m for m in matches if m.distance<distance_threshold]
     return filtered_matches
 
-def testMatchWithDistanceAndRatio(img1, img2, detect_method=detect.extractORBFeatures, distance_threshold=50, ratio_threshold=0.8):
+"""
+    test how distance threshold and ratio threshold influence the matches
+
+    Args:
+        img1: query image
+        img2: template image
+        distance_threshold: filter out matches whose distance is larger than the threshold
+        ratio_threshold: filter out matches whose best match's distance is larger than the second best match's distance*threshold
+        detect_method: detect method used for finding feature points
+        show_image: decide if the result image should be presented or not
+        matches_display_num: how many matches should be displayed on image, 0 and negative number stand for showing all
+"""
+def testMatchWithDistanceAndRatio(img1, img2, detect_method=detect.extractORBFeatures, distance_threshold=50, ratio_threshold=0.7, show_image=False, matches_display_num=0):
     kp1, des1 = detect_method(img1)
     kp2, des2 = detect_method(img2)
     if detect_method == detect.extractORBFeatures:
@@ -76,7 +88,16 @@ def testMatchWithDistanceAndRatio(img1, img2, detect_method=detect.extractORBFea
     matches = bf.knnMatch(des1, des2, k=2)
     matches = [m for m in matches if m is not None and m[0].distance < distance_threshold]
     matches = match.ratioTest(matches, ratio_threshold)
-    return [m[0] for m in matches]
+    matches = [m[0] for m in matches]
+    #display 10 best matches
+    if show_image:
+        m = matches
+        if matches_display_num > 0:
+            matches = sorted(matches, key=lambda m:m.distance)
+            m = matches[:matches_display_num]
+        match.drawMatches(img1,kp1,img2,kp2,m, thickness=2, color=(255,0,0), show_center=True)
+    return matches
+
 
 """
     test how the weight assignment work
