@@ -112,7 +112,7 @@ def testMatchWithDistanceAndRatio(img1, img2, detect_method=detect.extractORBFea
         show_image: decide if the result image should be presented or not
         matches_display_num: how many matches should be displayed on image
 """
-def testWeightedMatching(query_img, template_img, h_angle, v_angle, distance_threshold=50, detect_method=detect.extractORBFeatures, show_image=False, matches_display_num=0):
+def testweightedmatching(query_img, template_img, h_angle, v_angle, distance_threshold=50, detect_method=detect.extractORBFeatures, show_image=False, matches_display_num=0):
     #extract feature points
     kp1, des1 = detect_method(query_img)
     kp2, des2 = detect_method(template_img)
@@ -157,3 +157,50 @@ def testFindNeighbors(img, neighboring_num=10, detect_method=detect.extractORBFe
         print(TAG + "right: " + str([kp[np].pt for np in neighbor_points[i][1]]))
         print(TAG + "up: " + str([kp[np].pt for np in neighbor_points[i][2]]))
         print(TAG + "down: " + str([kp[np].pt for np in neighbor_points[i][3]]))
+
+"""
+    test how the adjusted confidence work
+
+    Args:
+        query_img: query image
+        template_img: template image
+        h_angle: horizontal angle change
+        v_angle: vertical angle change
+        distance_threshold: filter out matches whose distance is larger than the threshold
+        detect_method: detect method used for finding feature points
+        show_image: decide if the result image should be presented or not
+        matches_display_num: how many matches should be displayed on image
+"""
+def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distance_threshold=50, blocked_threshold=0.8, neighbor_num=10, detect_method=detect.extractORBFeatures, show_image=False, matches_display_num=0):
+    #extract feature points
+    kp1, des1 = detect_method(query_img)
+    kp2, des2 = detect_method(template_img)
+    #match feature points
+    #cv.DescriptorMatcher.knnMatch(queryDescriptors, trainDescriptors, k[, mask[, compactResult]])
+    if detect_method == detect.extractORBFeatures:
+        matches = match.BFMatchFeature(des1, des2, DescriptorType.ORB)
+    elif detect_method == detect.extractSURFFeatures:
+        matches = match.BFMatchFeature(des1, des2, DescriptorType.SURF)
+    
+    #arrange matches by its distance
+    matches = sorted(matches, key=lambda m:m.distance)
+    filtered_matches = [m for m in matches if m.distance<distance_threshold]
+
+    #display 10 best matches
+    if show_image:
+        m = matches
+        if matches_display_num > 0:
+            m = matches[:matches_display_num]
+        match.drawMatches(query_img,kp1,template_img,kp2,m, thickness=2, color=(255,0,0), show_center=True)
+
+    #assume two images have same size
+    height, width = template_img.shape[:2]
+    score = match.getAdjustedConfidenceByShrinkTemplate(filtered_matches, kp1, kp2, neighbor_num=neighbor_num, h_angle=h_angle, v_angle=v_angle, blocked_threshold=blocked_threshold)
+
+    if DEBUG > 0:
+        print(TAG + "template feature points: " + str(len(des2)))
+        print(TAG + "matched points: " + str(len(matches)))
+        print(TAG + "distance threshold: " + str(distance_threshold) + "\tfiltered matched points: " + str(len(filtered_matches)))
+        print(TAG + "precision: " + str(len(filtered_matches)/len(des2)))
+
+    print(TAG + "testAdjustedConfidence: adjusted score is " + str(score))

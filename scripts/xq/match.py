@@ -8,7 +8,7 @@ from enum import Enum
 #0: turn off debug mode
 #1: print out necessary debug log
 #2: print out verbose log
-DEBUG = 0
+DEBUG = 1
 TAG = "MATCH\t"
 
 class DescriptorType(Enum):
@@ -163,7 +163,7 @@ def getCenter(kps):
     Return:
         [[[left neighbors], [right neighbors], [up neighbors], [down neighbors]],[[...],[...],[...],[...]]...]
 """
-def findNeighbors(kps, n):
+def findNeighbors(kps, n=10):
     def getSquareDistance(pt1, pt2):
         return (pt1[0] - pt2[0])**2 + (pt1[1] - pt2[1])**2
     r = []
@@ -265,3 +265,50 @@ def getWeightedMatchingConfidence(img_width, img_height, matches, h_angle, v_ang
     scores = [weights[m.trainIdx] for m in matches]
 
     return (sum(scores) / len(template_kps))
+
+"""return confidence with consideration to excluding template feature points that are probably blocked
+
+    Args:
+        matches: matches
+        query_kps:  query key points, corresponding to match,queryIdx
+        template_kps: template key points, corresponding to match,trainIdx
+        neighbor_num: the number of neighbors which are taken into consideration
+        h_angle: change on horizontal angle. Facing the scenery, the camera holder turning rightward around the scenery is defined as postive angle, and turning leftward as negtive angle.
+        v_angle: change on vertical angle. Facing the scenery, the camera holder turning downward around the scenery is defined as postive angle, and turning upward as negtive angle.
+        blocked_threshold: threshold used to judge if an unmatched feature point is blocked
+"""
+def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neighbor_num=10, h_angle=0, v_angle=0, blocked_threshold=0.8):
+    #just record the indexes
+    matched_kps = [m.trainIdx for m in matches]
+    unmatched_kps = [i for i in range(len(template_kps)) if i not in matched_kps]
+    if DEBUG > 1:
+        print(TAG + "unmatched feature points: " + str(unmatched_kps))
+
+    neighbors = findNeighbors(template_kps, neighbor_num)
+
+    #which part of neighbors should be checked. 0, left, 1, right, 2, up, 3, down
+    if h_angle > 0:
+        check_index = 0
+    elif h_angle < 0:
+        check_index = 1
+    elif v_angle > 0:
+        check_index = 2
+    elif h_angle < 0:
+        check_index = 3
+    else:
+        return len(matches)/len(template_kps)
+
+    #record unmatched feature points that are probably blocked
+    blocked = 0
+    for i in unmatched_kps:
+        nbs = neighbors[i][check_index]
+        if DEBUG > 1:
+            print("%s neighbor points of %s: %s" % (TAG, str(template_kps[i].pt), str(nbs)))
+        if len(nbs) == 0:
+            continue
+        matched_nb = [nb for nb in nbs if nb in matched_kps]
+        if len(matched_nb)/len(nbs) > blocked_threshold:
+            blocked += 1
+    if DEBUG > 0:
+        print(TAG + "probably blocked feature points: " + str(blocked))
+    return len(matches)/(len(template_kps)-blocked)
