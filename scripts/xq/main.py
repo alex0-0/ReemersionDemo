@@ -15,15 +15,21 @@ TAG = "MAIN\t"
 img1 = cv2.imread("-30.JPG")
 img2 = cv2.imread("000.JPG")
 
+#test.testAdjustedConfidence(img1, img2, h_angle=-30, v_angle=0, distance_threshold=50, blocked_threshold=0.5, neighbor_num=10, detect_method=detect.extractORBFeatures, show_image=True, matches_display_num=0)
 
-img000 = cv2.imread("000.JPG")
-imgP15 = cv2.imread("015.JPG")
-imgN15 = cv2.imread("-15.JPG")
-imgP30 = cv2.imread("030.JPG")
-imgN30 = cv2.imread("-30.JPG")
-imgP45 = cv2.imread("045.JPG")
-imgN45 = cv2.imread("-45.JPG")
-img180 = cv2.imread("180.JPG")
+directory = "lamp"
+
+def readImage(f):
+    return cv2.imread(directory+"/"+f)
+
+img000 = readImage("000.JPG")
+imgP15 = readImage("015.JPG")
+imgN15 = readImage("-15.JPG")
+imgP30 = readImage("030.JPG")
+imgN30 = readImage("-30.JPG")
+imgP45 = readImage("045.JPG")
+imgN45 = readImage("-45.JPG")
+img180 = readImage("180.JPG")
 
 #test.testMatch(img1, img2, detect.extractSURFFeatures)
 
