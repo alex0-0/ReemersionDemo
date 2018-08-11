@@ -8,7 +8,7 @@ from enum import Enum
 #0: turn off debug mode
 #1: print out necessary debug log
 #2: print out verbose log
-DEBUG = 1
+DEBUG = 0
 TAG = "MATCH\t"
 
 class DescriptorType(Enum):
@@ -154,6 +154,9 @@ def getCenter(kps):
 
     return center
 
+def getSquareDistance(pt1, pt2):
+    return (pt1[0] - pt2[0])**2 + (pt1[1] - pt2[1])**2
+
 """return a list of sub-lists which contain k neighbor peers in four sub-fields of each key point, i.e., left, right, up, down. Key points in each field are stored in one list
 
     Args:
@@ -164,8 +167,6 @@ def getCenter(kps):
         [[[left neighbors], [right neighbors], [up neighbors], [down neighbors]],[[...],[...],[...],[...]]...]
 """
 def findNeighbors(kps, n=10):
-    def getSquareDistance(pt1, pt2):
-        return (pt1[0] - pt2[0])**2 + (pt1[1] - pt2[1])**2
     r = []
     for k in kps:
         dist= [getSquareDistance(k.pt, kp.pt) for kp in kps]
@@ -223,7 +224,7 @@ def getAverageSquareDistance(pts, center):
 
     return average, r
 
-def decideWeithsBySquareDistance(center, kps):
+def decideWeightsBySquareDistance(center, kps):
     pos = [k.pt for k in kps]
     if DEBUG > 1:
         print(TAG + "key points position: " + str(pos))
@@ -232,7 +233,7 @@ def decideWeithsBySquareDistance(center, kps):
 
 
 def assignWeights(center, kps):
-    return decideWeithsBySquareDistance(center, kps)
+    return decideWeightsBySquareDistance(center, kps)
 
 """return changed normalized center( ps: for now we haven't yet consider rotation change brings difference to key points!!!)
 
@@ -311,4 +312,15 @@ def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neig
             blocked += 1
     if DEBUG > 0:
         print(TAG + "probably blocked feature points: " + str(blocked))
-    return len(matches)/(len(template_kps)-blocked)
+    return len(matches)/(len(template_kps)-blocked), blocked
+
+def filterFalseMatchByDistanceRatio(matches, query_kps, template_kps):
+    template_pts = [template_kps[m.trainIdx].pt for m in matches]
+    query_pts = [query_kps[m.queryIdx].pt for m in matches]
+
+    t_center = getCenter(template_pts)
+    q_center = getCenter(query_pts)
+
+    t_dis = [getSquareDistance(t, t_center) for t in template_pts]
+    q_dis = [getSquareDistance(q, q_center) for q in query_pts]
+

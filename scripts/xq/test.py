@@ -12,7 +12,7 @@ import glob
 #0: turn off debug mode
 #1: print out necessary debug log
 #2: print out verbose log
-DEBUG = 1   
+DEBUG = 0   
 TAG = "TEST\t"
 
 def testDetect(img, detect_method=detect.extractORBFeatures, title=None):
@@ -171,7 +171,7 @@ def testFindNeighbors(img, neighboring_num=10, detect_method=detect.extractORBFe
         show_image: decide if the result image should be presented or not
         matches_display_num: how many matches should be displayed on image
 """
-def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distance_threshold=50, blocked_threshold=0.8, neighbor_num=10, detect_method=detect.extractORBFeatures, show_image=False, matches_display_num=0):
+def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distance_threshold=100, blocked_threshold=0.8, neighbor_num=10, detect_method=detect.extractORBFeatures, show_image=False, matches_display_num=0):
     #extract feature points
     kp1, des1 = detect_method(query_img)
     kp2, des2 = detect_method(template_img)
@@ -195,12 +195,12 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
 
     #assume two images have same size
     height, width = template_img.shape[:2]
-    score = match.getAdjustedConfidenceByShrinkTemplate(filtered_matches, kp1, kp2, neighbor_num=neighbor_num, h_angle=h_angle, v_angle=v_angle, blocked_threshold=blocked_threshold)
+    score, blocked= match.getAdjustedConfidenceByShrinkTemplate(filtered_matches, kp1, kp2, neighbor_num=neighbor_num, h_angle=h_angle, v_angle=v_angle, blocked_threshold=blocked_threshold)
 
     if DEBUG > 0:
         print(TAG + "template feature points: " + str(len(des2)))
         print(TAG + "matched points: " + str(len(matches)))
         print(TAG + "distance threshold: " + str(distance_threshold) + "\tfiltered matched points: " + str(len(filtered_matches)))
         print(TAG + "precision: " + str(len(filtered_matches)/len(des2)))
-
-    print(TAG + "testAdjustedConfidence: adjusted score is " + str(score))
+        print(TAG + "testAdjustedConfidence: adjusted score is " + str(score))
+    return score, blocked

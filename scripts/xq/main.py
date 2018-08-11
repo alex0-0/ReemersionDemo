@@ -14,6 +14,7 @@ TAG = "MAIN\t"
 #img2 = cv2.imread("090.JPG")
 img1 = cv2.imread("-30.JPG")
 img2 = cv2.imread("000.JPG")
+imgFalse = cv2.imread("jackstand.JPG")
 
 #test.testAdjustedConfidence(img1, img2, h_angle=-30, v_angle=0, distance_threshold=50, blocked_threshold=0.5, neighbor_num=10, detect_method=detect.extractORBFeatures, show_image=True, matches_display_num=0)
 
@@ -78,9 +79,8 @@ for rt in np.arange(0.5, 1, 0.1):
     print("%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%d" % (rt, len(rm000_P15), len(rm000_N15), len(rm000_P30), len(rm000_N30),len(rm000_P45), len(rm000_N45), len(rm000_180)))
 
 
-print("\nDistance test (ratio_threshold=1.0)")
+print("\nDistance test (ratio_threshold=1.1)")
 print("%s\t%s\t%s\t%s\t%s\t%s" % ("dist", "+15", "-15", "+30","-30","180"))
-rt = 1.0
 si = False
 #test different threshold
 for d in range(20, 101, 10):
@@ -104,5 +104,30 @@ _class_id	object id
 #for k in kp1:
 #    print(k.octave)
 
-#test.testDetect(img1, detect_method=detect.extractSURFFeatures)
-#test.testDetect(img2, detect_method=detect.extractSURFFeatures)
+print("\nAdjusted confidence test distance(ratio=0.5)")
+print("%s\t%s\t%s\t%s\t%s\t%s\t%s" % ("dist", "+15", "-15", "+30","-30","180","False"))
+si = False
+bt = 0.5
+#test different threshold
+for d in range(30, 101, 10):
+    con000_P15=test.testAdjustedConfidence(imgP15, img000, distance_threshold=d, h_angle=15, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_N15=test.testAdjustedConfidence(imgN15, img000, distance_threshold=d, h_angle=-15, show_image=si, matches_display_num=10, blocked_threshold=bt);
+    con000_P30=test.testAdjustedConfidence(imgP30, img000, distance_threshold=d, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_N30=test.testAdjustedConfidence(imgN30, img000, distance_threshold=d, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_180=test.testAdjustedConfidence(img180, img000, distance_threshold=d, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=d, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    print("%d\t%d\t%d\t%d\t%d\t%d\t%d" % (d, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
+
+print("\nAdjusted confidence test ratio(distance=100)")
+print("%s\t%s\t%s\t%s\t%s\t%s\t%s" % ("ratio", "+15", "-15", "+30","-30","180","False"))
+si = False
+dis = 100
+#test different threshold
+for bt in np.arange(0.2, 1.1, 0.1):
+    con000_P15=test.testAdjustedConfidence(imgP15, img000, distance_threshold=dis, h_angle=15, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_N15=test.testAdjustedConfidence(imgN15, img000, distance_threshold=dis, h_angle=-15, show_image=si, matches_display_num=10, blocked_threshold=bt);
+    con000_P30=test.testAdjustedConfidence(imgP30, img000, distance_threshold=dis, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_N30=test.testAdjustedConfidence(imgN30, img000, distance_threshold=dis, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_180=test.testAdjustedConfidence(img180, img000, distance_threshold=dis, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=dis, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    print("%.2f\t%d\t%d\t%d\t%d\t%d\t%d" % (bt, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
