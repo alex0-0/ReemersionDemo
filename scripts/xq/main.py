@@ -118,7 +118,7 @@ for d in range(30, 101, 10):
     con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=d, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt);
     print("%d\t%d\t%d\t%d\t%d\t%d\t%d" % (d, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
 
-si = False
+si = True
 dis = 50
 print("\nAdjusted confidence test ratio(distance=%d)"%(dis))
 print("%s\t%s\t%s\t%s\t%s\t%s\t%s" % ("ratio", "+15", "-15", "+30","-30","180","False"))
