@@ -134,7 +134,7 @@ for bt in np.arange(0.2, 1.1, 0.1):
     con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=dis, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt);
     print("%.2f\t%d\t%d\t%d\t%d\t%d\t%d" % (bt, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
 
-si = False
+si = True
 dis = 100
 bt = 0.5    #blocked_threshold
 print("\nAdjusted confidence test neighbor number(ratio=%.2f, distance=%d)"%(bt,dis))
