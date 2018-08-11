@@ -16,6 +16,8 @@ class DescriptorType(Enum):
     SURF = 2
 
 def BFMatchFeature(des1, des2, d_type=DescriptorType.ORB):
+    if des1 is None or des2 is None or len(des1) <= 0 or len(des2) <= 0:
+        return []
     if d_type == DescriptorType.SURF:
         bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck = True)
     else:
@@ -77,7 +79,7 @@ def ratioTest(m, threshold=0.7):
     
     return r
 
-def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None, show_center=False): 
+def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None, show_center=False, custom_point=None): 
     """Draws lines between matching keypoints of two images.  
     Keypoints not in a matching pair are not drawn.
 
@@ -138,6 +140,10 @@ def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None, show_c
         mean_y2 = sum([p[1] for p in pt2]) / len(matches)
         cv2.circle(new_img, tuple(np.round((mean_x1, mean_y1)).astype(int)), r, (255,255,255), thickness)
         cv2.circle(new_img, tuple(np.round((mean_x2, mean_y2)).astype(int)), r, (255,255,255), thickness)
+
+    if custom_point is not None:
+        pts = [tuple(np.round(p.pt).astype(int)+np.array([img1.shape[1],0]))  for p in custom_point]
+        [cv2.circle(new_img,p,r,(255,255,0),thickness) for p in pts]
     
     plt.figure(figsize=(15,15))
     plt.imshow(new_img)
@@ -300,7 +306,7 @@ def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neig
         return len(matches)/len(template_kps)
 
     #record unmatched feature points that are probably blocked
-    blocked = 0
+    blocked = []
     for i in unmatched_kps:
         nbs = neighbors[i][check_index]
         if DEBUG > 1:
@@ -309,10 +315,15 @@ def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neig
             continue
         matched_nb = [nb for nb in nbs if nb in matched_kps]
         if len(matched_nb)/len(nbs) > blocked_threshold:
-            blocked += 1
+            blocked.append(i)
     if DEBUG > 0:
         print(TAG + "probably blocked feature points: " + str(blocked))
-    return len(matches)/(len(template_kps)-blocked), blocked
+    
+    if (len(template_kps)-len(blocked)) == 0:
+        score = 0
+    else:
+        score = len(matches)/(len(template_kps)-len(blocked))
+    return score, blocked
 
 def filterFalseMatchByDistanceRatio(matches, query_kps, template_kps):
     template_pts = [template_kps[m.trainIdx].pt for m in matches]

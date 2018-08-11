@@ -186,16 +186,16 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
     matches = sorted(matches, key=lambda m:m.distance)
     filtered_matches = [m for m in matches if m.distance<distance_threshold]
 
+    #assume two images have same size
+    height, width = template_img.shape[:2]
+    score, blocked= match.getAdjustedConfidenceByShrinkTemplate(filtered_matches, kp1, kp2, neighbor_num=neighbor_num, h_angle=h_angle, v_angle=v_angle, blocked_threshold=blocked_threshold)
+
     #display 10 best matches
     if show_image:
         m = matches
         if matches_display_num > 0:
             m = matches[:matches_display_num]
-        match.drawMatches(query_img,kp1,template_img,kp2,m, thickness=2, color=(255,0,0), show_center=True)
-
-    #assume two images have same size
-    height, width = template_img.shape[:2]
-    score, blocked= match.getAdjustedConfidenceByShrinkTemplate(filtered_matches, kp1, kp2, neighbor_num=neighbor_num, h_angle=h_angle, v_angle=v_angle, blocked_threshold=blocked_threshold)
+        match.drawMatches(query_img,kp1,template_img,kp2,m, thickness=2, color=(255,0,0), show_center=True, custom_point=[kp2[i] for i in blocked])
 
     if DEBUG > 0:
         print(TAG + "template feature points: " + str(len(des2)))
@@ -203,4 +203,4 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
         print(TAG + "distance threshold: " + str(distance_threshold) + "\tfiltered matched points: " + str(len(filtered_matches)))
         print(TAG + "precision: " + str(len(filtered_matches)/len(des2)))
         print(TAG + "testAdjustedConfidence: adjusted score is " + str(score))
-    return score, blocked
+    return score, len(blocked)
