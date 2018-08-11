@@ -174,8 +174,10 @@ def getSquareDistance(pt1, pt2):
 """
 def findNeighbors(kps, n=10):
     r = []
+    c=1
     for k in kps:
         dist= [getSquareDistance(k.pt, kp.pt) for kp in kps]
+        
         #right
         right = []
         #left
@@ -196,19 +198,33 @@ def findNeighbors(kps, n=10):
                 up.append(i)
             else:
                 down.append(i)
-        sorted(left, key = lambda x:dist[x])
-        sorted(right, key = lambda x:dist[x])
-        sorted(up, key = lambda x:dist[x])
-        sorted(down, key = lambda x:dist[x])
+    
+        left= sorted(left, key = lambda x:dist[x])
+        right = sorted(right, key = lambda x:dist[x])
+        up = sorted(up, key = lambda x:dist[x])
+        down = sorted(down, key = lambda x:dist[x])
+        
+        if len(left)>n:
+            left=left[:n]
+        if len(right)>n:
+            right=right[:n]
+        if len(up)>n:
+            up=up[:n]
+        if len(down)>n:
+            down=down[:n]
+                        
         if DEBUG > 1:
-            print(TAG + "point position: " + str([kp.pt for kp in kps]))
-            print(TAG + "point distance: " + str(dist))
-            print(TAG + "left: " + str(left))
-            print(TAG + "right: " + str(right))
-            print(TAG + "up: " + str(up))
-            print(TAG + "down: " + str(down))
+            #print(TAG + "point position: " + str([kp.pt for kp in kps]))
+            #print(TAG + "point distance: " + str(dist))
+            print("\n"+TAG+"FP"+str(c)+":")
+            print("\t"+TAG + "left: " + str(left))
+            print("\t"+TAG + "right: " + str(right))
+            print("\t"+TAG + "up: " + str(up))
+            print("\t"+TAG + "down: " + str(down))
+        c+=1
+#r.append([left[:n], right[:n], up[:n], down[:n]])
+        r.append([left, right, up, down])
 
-        r.append([left[:n], right[:n], up[:n], down[:n]])
 
     return r
 
@@ -314,6 +330,10 @@ def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neig
         if len(nbs) == 0:
             continue
         matched_nb = [nb for nb in nbs if nb in matched_kps]
+
+        if DEBUG > 1:
+            print(TAG + "FP" + str(i)+" - matched_nb: " + str(matched_nb))
+
         if len(matched_nb)/len(nbs) > blocked_threshold:
             blocked.append(i)
     if DEBUG > 0:

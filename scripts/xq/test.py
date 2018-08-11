@@ -192,9 +192,9 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
 
     #display 10 best matches
     if show_image:
-        m = matches
+        m = filtered_matches
         if matches_display_num > 0:
-            m = matches[:matches_display_num]
+            m = filtered_matches[:matches_display_num]
         match.drawMatches(query_img,kp1,template_img,kp2,m, thickness=2, color=(255,0,0), show_center=True, custom_point=[kp2[i] for i in blocked])
 
     if DEBUG > 0:
