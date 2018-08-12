@@ -79,7 +79,7 @@ def ratioTest(m, threshold=0.7):
     
     return r
 
-def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None, show_center=False, custom_point=None): 
+def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None, show_center=False, custom_point1=None, custom_point2=None): 
     """Draws lines between matching keypoints of two images.  
     Keypoints not in a matching pair are not drawn.
 
@@ -141,9 +141,13 @@ def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None, show_c
         cv2.circle(new_img, tuple(np.round((mean_x1, mean_y1)).astype(int)), r, (255,255,255), thickness)
         cv2.circle(new_img, tuple(np.round((mean_x2, mean_y2)).astype(int)), r, (255,255,255), thickness)
 
-    if custom_point is not None:
-        pts = [tuple(np.round(p.pt).astype(int)+np.array([img1.shape[1],0]))  for p in custom_point]
+    if custom_point1 is not None:
+        pts = [tuple(np.round(p.pt).astype(int)+np.array([img1.shape[1],0]))  for p in custom_point1]
         [cv2.circle(new_img,p,r,(255,255,0),thickness) for p in pts]
+
+    if custom_point2 is not None:
+        pts = [tuple(np.round(p.pt).astype(int)+np.array([img1.shape[1],0]))  for p in custom_point2]
+        [cv2.circle(new_img,p,2*r,(0,255,0),thickness,4) for p in pts]
     
     plt.figure(figsize=(15,15))
     plt.imshow(new_img)
@@ -199,7 +203,7 @@ def findNeighbors(kps, n=10):
             else:
                 down.append(i)
     
-        left= sorted(left, key = lambda x:dist[x])
+        left = sorted(left, key = lambda x:dist[x])
         right = sorted(right, key = lambda x:dist[x])
         up = sorted(up, key = lambda x:dist[x])
         down = sorted(down, key = lambda x:dist[x])
@@ -300,7 +304,7 @@ def getWeightedMatchingConfidence(img_width, img_height, matches, h_angle, v_ang
         v_angle: change on vertical angle. Facing the scenery, the camera holder moving upward around the scenery is defined as postive angle, and moving downward as negtive angle.
         blocked_threshold: threshold used to judge if an unmatched feature point is blocked
 """
-def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neighbor_num=10, h_angle=0, v_angle=0, blocked_threshold=0.8):
+def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neighbor_num=10, h_angle=0, v_angle=0, blocked_threshold=0.8, return_neighbors=False):
     #just record the indexes
     matched_kps = [m.trainIdx for m in matches]
     unmatched_kps = [i for i in range(len(template_kps)) if i not in matched_kps]
@@ -323,8 +327,11 @@ def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neig
 
     #record unmatched feature points that are probably blocked
     blocked = []
+    if return_neighbors:
+        r_nbs = []
     for i in unmatched_kps:
         nbs = neighbors[i][check_index]
+            
         if DEBUG > 1:
             print("%s neighbor points of %s: %s" % (TAG, str(template_kps[i].pt), str(nbs)))
         if len(nbs) == 0:
@@ -332,10 +339,13 @@ def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neig
         matched_nb = [nb for nb in nbs if nb in matched_kps]
 
         if DEBUG > 1:
-            print(TAG + "FP" + str(i)+" - matched_nb: " + str(matched_nb))
+            print(TAG + "FP" + str(i) + " - matched_nb: " + str(matched_nb))
 
         if len(matched_nb)/len(nbs) > blocked_threshold:
             blocked.append(i)
+            #for debug in caller method
+            if return_neighbors:
+                r_nbs.append(nbs)
     if DEBUG > 0:
         print(TAG + "probably blocked feature points: " + str(blocked))
     
@@ -343,6 +353,11 @@ def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neig
         score = 0
     else:
         score = len(matches)/(len(template_kps)-len(blocked))
+
+    #just for debug
+    if return_neighbors:
+        return score, blocked, r_nbs
+
     return score, blocked
 
 def filterFalseMatchByDistanceRatio(matches, query_kps, template_kps):

@@ -188,14 +188,17 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
 
     #assume two images have same size
     height, width = template_img.shape[:2]
-    score, blocked= match.getAdjustedConfidenceByShrinkTemplate(filtered_matches, kp1, kp2, neighbor_num=neighbor_num, h_angle=h_angle, v_angle=v_angle, blocked_threshold=blocked_threshold)
+    score, blocked, nbs = match.getAdjustedConfidenceByShrinkTemplate(filtered_matches, kp1, kp2, neighbor_num=neighbor_num, h_angle=h_angle, v_angle=v_angle, blocked_threshold=blocked_threshold, return_neighbors=True)
 
-    #display 10 best matches
+    #display matches_display_num best matches
     if show_image:
         m = filtered_matches
         if matches_display_num > 0:
             m = filtered_matches[:matches_display_num]
-        match.drawMatches(query_img,kp1,template_img,kp2,m, thickness=2, color=(255,0,0), show_center=True, custom_point=[kp2[i] for i in blocked])
+        #just pick a few neighbors for debug
+        neighbor_of_blocked = set()
+        [[neighbor_of_blocked.add(kp2[i]) for i in nb] for nb in nbs[:20]]
+        match.drawMatches(query_img,kp1,template_img,kp2,m, thickness=2, color=(255,0,0), show_center=True, custom_point1=[kp2[i] for i in blocked], custom_point2=neighbor_of_blocked)
 
     if DEBUG > 0:
         print(TAG + "template feature points: " + str(len(des2)))
