@@ -113,7 +113,7 @@ si = False  #show_image
 bt = 0.5    #blocked_threshold
 nn = 10     #neighbor_number
 print("\nAdjusted confidence test distance(ratio=%.2f, neighbor_number=%d)"%(bt,nn))
-print("%-5s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
+print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
 #test different threshold
 for d in range(40, 101, 10):
     con000_P15=test.testAdjustedConfidence(imgP15, img000, distance_threshold=d, h_angle=15, show_image=si, matches_display_num=100, blocked_threshold=bt);
@@ -124,7 +124,7 @@ for d in range(40, 101, 10):
     con000_N45=test.testAdjustedConfidence(imgN45, img000, distance_threshold=d, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_180=test.testAdjustedConfidence(img180, img000, distance_threshold=d, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=d, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt);
-    print("%d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d" % (d, con000_P15[0],con000_P15[1], con000_N15[0],con000_N15[1], con000_P30[0],con000_P30[1], con000_N30[0],con000_N30[1],con000_P45[0],con000_P45[1], con000_N45[0],con000_N45[1], con000_180[0],con000_180[1],con000_false[0],con000_false[1]))
+    print("%d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (d, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 #exit()
 
 
@@ -133,7 +133,7 @@ si = False
 dis = 100
 nn = 10     #neighbor_number
 print("\nAdjusted confidence test ratio(distance=%d, neighbor_number=%d)"%(dis,nn))
-print("%-5s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
+print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
 #test different threshold
 for bt in np.arange(0.2, 1.1, 0.1):
     con000_P15=test.testAdjustedConfidence(imgP15, img000, distance_threshold=dis, h_angle=15, show_image=si, matches_display_num=100, blocked_threshold=bt);
@@ -145,13 +145,13 @@ for bt in np.arange(0.2, 1.1, 0.1):
     con000_180=test.testAdjustedConfidence(img180, img000, distance_threshold=dis, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=dis, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt);
 #print("%.2f\t%d\t%d\t%d\t%d\t%d\t%d" % (bt, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
-    print("%.02f\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d" % (bt, con000_P15[0],con000_P15[1], con000_N15[0],con000_N15[1], con000_P30[0],con000_P30[1], con000_N30[0],con000_N30[1], con000_P45[0],con000_P45[1], con000_N45[0],con000_N45[1], con000_180[0],con000_180[1],con000_false[0],con000_false[1]))
+    print("%d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (d, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 
 #si = True
-dis = 50
+dis = 100
 bt = 0.5    #blocked_threshold
 print("\nAdjusted confidence test neighbor number(ratio=%.2f, distance=%d)"%(bt,dis))
-print("%-5s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
+print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
 #test different threshold
 for nn in np.arange(4, 21, 2):
     con000_P15=test.testAdjustedConfidence(imgP15, img000, distance_threshold=dis, h_angle=15, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
@@ -163,7 +163,7 @@ for nn in np.arange(4, 21, 2):
     con000_180=test.testAdjustedConfidence(img180, img000, distance_threshold=dis, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
     con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=dis, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
 #print("%d\t%d\t%d\t%d\t%d\t%d\t%d" % (nn, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
-    print("%d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d" % (nn, con000_P15[0],con000_P15[1], con000_N15[0],con000_N15[1], con000_P30[0],con000_P30[1], con000_N30[0],con000_N30[1], con000_P45[0],con000_P45[1], con000_N45[0],con000_N45[1], con000_180[0],con000_180[1],con000_false[0],con000_false[1]))
+    print("%d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (d, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 """
 
 """

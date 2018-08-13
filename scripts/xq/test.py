@@ -228,7 +228,6 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
         if matches_display_num > 0:
             m = filtered_matches[:matches_display_num]
         #just pick a few neighbors for debug
-
         bfp=2
         neighbor_of_blocked = set()
         [[neighbor_of_blocked.add(kp2[i]) for i in nb] for nb in nbs[:bfp]]
@@ -242,4 +241,4 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
         print(TAG + "distance threshold: " + str(distance_threshold) + "\tfiltered matched points: " + str(len(filtered_matches)))
         print(TAG + "precision: " + str(len(filtered_matches)/len(des2)))
         print(TAG + "testAdjustedConfidence: adjusted score is " + str(score))
-    return score, len(blocked)
+    return score, len(blocked), match.truePositiveConfidence(matches, kp1, kp2)

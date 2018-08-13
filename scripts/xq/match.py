@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from enum import Enum
+from math import sqrt
 
 #0: turn off debug mode
 #1: print out necessary debug log
@@ -158,11 +159,10 @@ def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None, show_c
 """return center of a list of key points
 
     Args:
-        kps: a list of key points
+        kps: a list of points, containing (x, y)
 """
-def getCenter(kps):
-    pts = [k.pt for k in kps]
-    center = (sum([pt[0] for pt in pts])/len(pt), sum([pt[1] for pt in pts])/len(pts))
+def getCenter(pts):
+    center = (sum([pt[0] for pt in pts])/len(pts), sum([pt[1] for pt in pts])/len(pts))
 
     return center
 
@@ -400,32 +400,32 @@ def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, n
 
     for i in unmatched_kps:
         nbs = neighbors[i][check_index]
-        n_status[i]=0; #pending
+        n_status[i] = 0; #pending
         
         if DEBUG > 1:
             print("%s neighbor points of %d %s: %s" % (TAG, i, str(template_kps[i].pt), str(nbs)))
         if len(nbs) == 0:
             blocked.append(i)
-            n_status[i]=2
+            n_status[i] = 2
             continue
 #matched_nb = [nb for nb in nbs if nb in matched_kps]
 
 #method 2
-        matched_nb=[]
-        idx=0
+        matched_nb = []
+        idx = 0
         offset=0
         for idx, nb in enumerate(nbs):
             #print("idx:%d" % (idx))
             if nb in matched_kps:
                 #print("idx in match:%d" % (idx))
                 
-                c=0
+                c = 0
                 for offset, nb in enumerate(nbs[idx:len(nbs)]):
                     #print("end_idx  in loop:%d" % (end_idx))
                    if nb in matched_kps:
-                        c+=1
+                        c += 1
                         matched_nb.append(nb)
-                        if c>= neighbor_num:
+                        if c >= neighbor_num:
                             break
 #if c==0:
 
@@ -480,7 +480,7 @@ def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, n
     if (len(template_kps)-len(blocked)) == 0:
         score = 0
     else:
-        score = len(matches)/(len(template_kps)-len(blocked))
+        score = len(matches)/(len(template_kps)-len(blocked)) * truePositiveConfidence(matches, query_kps, template_kps)  
 
     if DEBUG > 0:
         print("matches:%d\t total fps:%d\t blocked fps:%d" % (len(matches),len(template_kps),len(blocked)))
@@ -529,13 +529,31 @@ def checkNeighbor(nb,neighbors,idx, matches_kps,blocked_threshold):
     n_status[nb]=1
     return False
 
-def filterFalseMatchByDistanceRatio(matches, query_kps, template_kps):
+def truePositiveConfidence(matches, query_kps, template_kps):
     template_pts = [template_kps[m.trainIdx].pt for m in matches]
     query_pts = [query_kps[m.queryIdx].pt for m in matches]
+
+    if len(query_pts) == 0:
+        return 0
 
     t_center = getCenter(template_pts)
     q_center = getCenter(query_pts)
 
-    t_dis = [getSquareDistance(t, t_center) for t in template_pts]
-    q_dis = [getSquareDistance(q, q_center) for q in query_pts]
+    t_dis = [sqrt(getSquareDistance(t, t_center)) for t in template_pts]
+    q_dis = [sqrt(getSquareDistance(q, q_center)) for q in query_pts]
 
+    ratios = [a/b for a,b in zip(q_dis,t_dis) if a*b != 0]
+
+    return jainIndex(ratios)
+
+"""return Jain fainess index. Refer to https://en.wikipedia.org/wiki/Fairness_measure
+
+    Arg:
+        x: a list of number
+"""
+def jainIndex(x):
+    a = sum(x)**2
+    b = len(x) * sum([i**2 for i in x])
+    if b == 0:
+        return 1
+    return a/b
