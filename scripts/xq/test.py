@@ -151,12 +151,44 @@ def testweightedmatching(query_img, template_img, h_angle, v_angle, distance_thr
 def testFindNeighbors(img, neighboring_num=10, detect_method=detect.extractORBFeatures):
     kp,des = detect_method(img)
     neighbor_points = match.findNeighbors(kp, neighboring_num)
+    
+    height, width = img.shape[:2]
+    idx=1
+    
     for i in range(len(kp)):
+        if not i==idx:
+            continue
         print(TAG + "feature point: " + str(kp[i].pt))
-        print(TAG + "left: " + str([kp[np].pt for np in neighbor_points[i][0]]))
-        print(TAG + "right: " + str([kp[np].pt for np in neighbor_points[i][1]]))
-        print(TAG + "up: " + str([kp[np].pt for np in neighbor_points[i][2]]))
-        print(TAG + "down: " + str([kp[np].pt for np in neighbor_points[i][3]]))
+        print(TAG + "left: " +str(len(neighbor_points[i][0]))+"--"+ str([kp[np].pt for np in neighbor_points[i][0]]))
+        print(TAG + "right: " + str(len(neighbor_points[i][1]))+"--"+str([kp[np].pt for np in neighbor_points[i][1]]))
+        print(TAG + "up: " + str(len(neighbor_points[i][2]))+"--"+str([kp[np].pt for np in neighbor_points[i][2]]))
+        print(TAG + "down: " + str(len(neighbor_points[i][3]))+"--"+str([kp[np].pt for np in neighbor_points[i][3]]))
+
+
+    cv2.circle(img,tuple(np.round(kp[idx].pt).astype(int)), 20, (0,255,255), -1)
+
+    c=[(255,0,0), (0,0,255), (0,255,0), (100,100,100)]
+
+    cv2.circle(img,(100,int(round(height/2))), 50, c[0], -1)
+    cv2.circle(img,(width-100,int(round(height/2))), 50, c[1], -1)
+    cv2.circle(img,(int(round(width/2)),100), 50, c[2], -1)
+    cv2.circle(img,(int(round(width/2)),height-100), 50, c[3], -1)
+
+    for i in [0,1,2,3]:
+        nbs=neighbor_points[idx][i]
+        for nb in nbs:
+            cv2.circle(img,tuple(np.round(kp[nb].pt).astype(int)), 10, c[i], -1)
+
+
+#t = "image with neighbor points"
+#   cv2.namedWindow(t, cv2.WINDOW_NORMAL)
+#   cv2.resizeWindow(t,600,600)
+#   cv2.imshow(t, img)
+#   cv2.waitKey(0)
+#   cv2.destroyAllWindows()
+    plt.imshow(img)
+    plt.show()
+    return neighbor_points
 
 """
     test how the adjusted confidence work
@@ -188,7 +220,7 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
 
     #assume two images have same size
     height, width = template_img.shape[:2]
-    score, blocked, nbs = match.getAdjustedConfidenceByShrinkTemplate(filtered_matches, kp1, kp2, neighbor_num=neighbor_num, h_angle=h_angle, v_angle=v_angle, blocked_threshold=blocked_threshold, return_neighbors=True)
+    score, blocked, nbs = match.getAdjustedConfidenceByShrinkTemplateNew(filtered_matches, kp1, kp2, neighbor_num=neighbor_num, h_angle=h_angle, v_angle=v_angle, blocked_threshold=blocked_threshold, return_neighbors=True)
 
     #display matches_display_num best matches
     if show_image:
@@ -196,9 +228,13 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
         if matches_display_num > 0:
             m = filtered_matches[:matches_display_num]
         #just pick a few neighbors for debug
+
+        bfp=2
         neighbor_of_blocked = set()
-        [[neighbor_of_blocked.add(kp2[i]) for i in nb] for nb in nbs[:20]]
-        match.drawMatches(query_img,kp1,template_img,kp2,m, thickness=2, color=(255,0,0), show_center=True, custom_point1=[kp2[i] for i in blocked], custom_point2=neighbor_of_blocked)
+        [[neighbor_of_blocked.add(kp2[i]) for i in nb] for nb in nbs[:bfp]]
+#print(TAG+str(len(neighbor_of_blocked)))
+
+        match.drawMatches(query_img,kp1,template_img,kp2,m, thickness=2, color=(255,0,0), show_center=True, custom_point1=[kp2[i] for i in blocked[:bfp]], custom_point2=neighbor_of_blocked)
 
     if DEBUG > 0:
         print(TAG + "template feature points: " + str(len(des2)))

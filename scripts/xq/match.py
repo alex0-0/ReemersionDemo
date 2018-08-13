@@ -10,6 +10,8 @@ from enum import Enum
 #2: print out verbose log
 DEBUG = 0
 TAG = "MATCH\t"
+blocked = []
+n_status = [-1] * 1000
 
 class DescriptorType(Enum):
     ORB = 1
@@ -149,7 +151,7 @@ def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None, show_c
         pts = [tuple(np.round(p.pt).astype(int)+np.array([img1.shape[1],0]))  for p in custom_point2]
         [cv2.circle(new_img,p,2*r,(0,255,0),thickness,4) for p in pts]
     
-    plt.figure(figsize=(15,15))
+    #plt.figure(figsize=(15,15))
     plt.imshow(new_img)
     plt.show()
 
@@ -178,6 +180,7 @@ def getSquareDistance(pt1, pt2):
 """
 def findNeighbors(kps, n=10):
     r = []
+    dt=200
     c=1
     for k in kps:
         dist= [getSquareDistance(k.pt, kp.pt) for kp in kps]
@@ -194,13 +197,13 @@ def findNeighbors(kps, n=10):
             d = kps[i]
             if d == k:
                 continue
-            if d.pt[0] > k.pt[0]:
+            if d.pt[0] > k.pt[0] and abs(d.pt[1]-k.pt[1])<dt:
                 right.append(i)
-            else:
+            elif d.pt[0] <= k.pt[0] and abs(d.pt[1]-k.pt[1])<dt:
                 left.append(i)
-            if (d.pt[1] < k.pt[1]):
+            if (d.pt[1] <= k.pt[1]) and abs(d.pt[0]-k.pt[0])<dt:
                 up.append(i)
-            else:
+            elif (d.pt[1] > k.pt[1]) and abs(d.pt[0]-k.pt[0])<dt:
                 down.append(i)
     
         left = sorted(left, key = lambda x:dist[x])
@@ -208,14 +211,14 @@ def findNeighbors(kps, n=10):
         up = sorted(up, key = lambda x:dist[x])
         down = sorted(down, key = lambda x:dist[x])
         
-        if len(left)>n:
-            left=left[:n]
-        if len(right)>n:
-            right=right[:n]
-        if len(up)>n:
-            up=up[:n]
-        if len(down)>n:
-            down=down[:n]
+        #if len(left)>n:
+        #    left=left[:n]
+        #if len(right)>n:
+        #    right=right[:n]
+        #if len(up)>n:
+        #    up=up[:n]
+        #if len(down)>n:
+        #    down=down[:n]
                         
         if DEBUG > 1:
             #print(TAG + "point position: " + str([kp.pt for kp in kps]))
@@ -329,9 +332,10 @@ def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neig
     blocked = []
     if return_neighbors:
         r_nbs = []
+
     for i in unmatched_kps:
         nbs = neighbors[i][check_index]
-            
+        
         if DEBUG > 1:
             print("%s neighbor points of %s: %s" % (TAG, str(template_kps[i].pt), str(nbs)))
         if len(nbs) == 0:
@@ -340,12 +344,15 @@ def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neig
 
         if DEBUG > 1:
             print(TAG + "FP" + str(i) + " - matched_nb: " + str(matched_nb))
+            print(TAG + "%d\t%d\t%.2f" % (len(matched_nb), len(nbs), blocked_threshold))
 
+#if (len(matched_nb)==0) or (len(matched_nb)/len(nbs) > blocked_threshold):
         if len(matched_nb)/len(nbs) > blocked_threshold:
             blocked.append(i)
             #for debug in caller method
-            if return_neighbors:
-                r_nbs.append(nbs)
+
+    if return_neighbors:
+        r_nbs.append(nbs)
     if DEBUG > 0:
         print(TAG + "probably blocked feature points: " + str(blocked))
     
@@ -354,11 +361,173 @@ def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neig
     else:
         score = len(matches)/(len(template_kps)-len(blocked))
 
+    print("matches:%d\t total fps:%d\t blocked fps:%d" % (len(matches),len(template_kps),len(blocked)))
     #just for debug
     if return_neighbors:
         return score, blocked, r_nbs
 
     return score, blocked
+
+def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, neighbor_num=10, h_angle=0, v_angle=0, blocked_threshold=0.8, return_neighbors=False):
+    #just record the indexes
+    matched_kps = [m.trainIdx for m in matches]
+    n_status = [0] * len(template_kps)
+    #print("n_status: %d" % (len(n_status)))
+    
+    
+    unmatched_kps = [i for i in range(len(template_kps)) if i not in matched_kps]
+    if DEBUG > 1:
+        print(TAG + "unmatched feature points: " + str(unmatched_kps))
+    
+    neighbors = findNeighbors(template_kps, neighbor_num)
+
+#which part of neighbors should be checked. 0, left, 1, right, 2, up, 3, down
+    if h_angle < 0:
+        check_index = 0
+    elif h_angle > 0:
+        check_index = 1
+    elif v_angle > 0:
+        check_index = 2
+    elif h_angle < 0:
+        check_index = 3
+    else:
+        return len(matches)/len(template_kps)
+    
+    #record unmatched feature points that are probably blocked
+    blocked = []
+    if return_neighbors:
+        r_nbs = []
+
+    for i in unmatched_kps:
+        nbs = neighbors[i][check_index]
+        n_status[i]=0; #pending
+        
+        if DEBUG > 1:
+            print("%s neighbor points of %d %s: %s" % (TAG, i, str(template_kps[i].pt), str(nbs)))
+        if len(nbs) == 0:
+            blocked.append(i)
+            n_status[i]=2
+            continue
+#matched_nb = [nb for nb in nbs if nb in matched_kps]
+
+#method 2
+        matched_nb=[]
+        idx=0
+        offset=0
+        for idx, nb in enumerate(nbs):
+            #print("idx:%d" % (idx))
+            if nb in matched_kps:
+                #print("idx in match:%d" % (idx))
+                
+                c=0
+                for offset, nb in enumerate(nbs[idx:len(nbs)]):
+                    #print("end_idx  in loop:%d" % (end_idx))
+                   if nb in matched_kps:
+                        c+=1
+                        matched_nb.append(nb)
+                        if c>= neighbor_num:
+                            break
+#if c==0:
+
+#print("offset:%d, idx:%d, c:%d" % (offset,idx,c))
+                break
+
+#print("offset:%d, nbs_len:%d, idx:%d" % (offset,len(nbs),idx))
+
+        if len(matched_nb)/min(offset+1,len(nbs)-idx) > blocked_threshold:
+            blocked.append(i)
+
+        if DEBUG > 1:
+            print(TAG + "FP" + str(i) + " - matched_nb: " + str(matched_nb))
+
+#method 1
+
+#        matched_nb=[]
+#       idx=0
+#       for idx, nb in enumerate(nbs):
+#           if nb in matched_kps:
+#               for nb in nbs[idx:min(idx+neighbor_num,len(nbs))]:
+#                   if nb in matched_kps:
+#                       matched_nb.append(nb)
+#               break
+#
+#       if (len(matched_nb)==0) or ( len(matched_nb)/min(neighbor_num,len(nbs)-idx) > blocked_threshold):
+#           blocked.append(i)
+
+
+    
+
+#blocked_nb = [nb for nb in nbs if checkNeighbor(nb,neighbors,check_index,matched_kps,blocked_threshold) ]
+#blocked_nb=[]
+#       for nb in nbs:
+#           print("%d : %r" % (nb, (nb in matched_kps)))
+#           if nb in matched_kps:
+#               n_status[nb]=1;
+#               continue
+#           ret= checkNeighbor(nb,neighbors,check_index, matched_kps,blocked_threshold)
+#           print("NB %d: %r" % (nb, ret))
+#           if ret:
+#               blocked_nb.append(nb)
+
+    
+        #for debug in caller method
+        
+    if return_neighbors:
+        r_nbs.append(nbs)
+    if DEBUG > 0:
+        print(TAG + "probably blocked feature points: " + str(blocked))
+
+    if (len(template_kps)-len(blocked)) == 0:
+        score = 0
+    else:
+        score = len(matches)/(len(template_kps)-len(blocked))
+
+    if DEBUG > 0:
+        print("matches:%d\t total fps:%d\t blocked fps:%d" % (len(matches),len(template_kps),len(blocked)))
+#just for debug
+    if return_neighbors:
+        return score, blocked, r_nbs
+    
+    return score, blocked
+
+
+def checkNeighbor(nb,neighbors,idx, matches_kps,blocked_threshold):
+    #if not (nb in matches_kps):
+        #print("%d\t%d" % (nb,len(n_status)))
+        #    n_status[nb]=0
+        #return False
+    
+    if n_status[nb]>0:
+        return (n_status==2)
+    n_status[nb]=0; #pending
+    nbs = neighbors[nb][idx]
+
+    if len(nbs) == 0:
+        n_status[nb]=2
+        return True
+    matched_nb = [nb for nb in nbs if nb in matches_kps]
+        
+        #blocked_nb = [nb for nb in nbs if (not nb in matches_kps) and checkNeighbor(nb,neighbors,idx, matches_kps,blocked_threshold)]
+    blocked_nb=[]
+
+    for nb in nbs:
+        print("%d : %r" % (nb, (nb in matches_kps)))
+        if nb in matches_kps:
+            n_status[nb]=1
+            continue
+        if checkNeighbor(nb,neighbors,idx, matches_kps,blocked_threshold):
+            blocked_nb.append(nb)
+
+
+    if (len(nbs) == len(blocked_nb)) or (len(matched_nb)/(len(nbs)-len(blocked_nb)) > blocked_threshold):
+        blocked.append(nb)
+        n_status[nb]=2 #blocked
+        return True
+
+    print("FP %d: %d neighbors, %d matches, %d blocked" % (nb, len(nbs), len(matched_nb), len(blocked_nb)))
+
+    n_status[nb]=1
+    return False
 
 def filterFalseMatchByDistanceRatio(matches, query_kps, template_kps):
     template_pts = [template_kps[m.trainIdx].pt for m in matches]

@@ -19,7 +19,7 @@ imgFalse = cv2.imread("jackstand.JPG")
 #test.testAdjustedConfidence(img1, img2, h_angle=-30, v_angle=0, distance_threshold=50, blocked_threshold=0.5, neighbor_num=10, detect_method=detect.extractORBFeatures, show_image=True, matches_display_num=0)
 
 directory = "lamp"
-
+#directory = "horse"
 def readImage(f):
     return cv2.imread(directory+"/"+f)
 
@@ -52,6 +52,9 @@ m000_P45=test.findMatches(imgP45,img000);
 m000_N45=test.findMatches(imgN45,img000);
 m000_180=test.findMatches(img180,img000);
 m000_false=test.findMatches(img180,imgFalse);
+
+#nbs=test.testFindNeighbors(imgP15)
+
 #
 #
 print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","false"))
@@ -95,13 +98,13 @@ for d in range(20, 101, 10):
 #test.testWeightedMatching(img1, img2, 60, 0, d, detect_method=detect.extractSURFFeatures)
 
 """
-KeyPoint Parameters 
-_pt	x & y coordinates of the keypoint
-_size	keypoint diameter
-_angle	keypoint orientation
-_response	keypoint detector response on the keypoint (that is, strength of the keypoint)
-_octave	pyramid octave in which the keypoint has been detected
-_class_id	object id
+#KeyPoint Parameters
+#_pt	x & y coordinates of the keypoint
+#_size	keypoint diameter
+#_angle	keypoint orientation
+#_response	keypoint detector response on the keypoint (that is, strength of the keypoint)
+#_octave	pyramid octave in which the keypoint has been detected
+#_class_id	object id
 """
 #for k in kp1:
 #    print(k.octave)
@@ -110,46 +113,57 @@ si = False  #show_image
 bt = 0.5    #blocked_threshold
 nn = 10     #neighbor_number
 print("\nAdjusted confidence test distance(ratio=%.2f, neighbor_number=%d)"%(bt,nn))
-print("%s\t%s\t%s\t%s\t%s\t%s\t%s" % ("dist", "+15", "-15", "+30","-30","180","False"))
+print("%-5s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
 #test different threshold
-for d in range(30, 101, 10):
+for d in range(40, 101, 10):
     con000_P15=test.testAdjustedConfidence(imgP15, img000, distance_threshold=d, h_angle=15, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_N15=test.testAdjustedConfidence(imgN15, img000, distance_threshold=d, h_angle=-15, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_P30=test.testAdjustedConfidence(imgP30, img000, distance_threshold=d, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_N30=test.testAdjustedConfidence(imgN30, img000, distance_threshold=d, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_P45=test.testAdjustedConfidence(imgP45, img000, distance_threshold=d, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_N45=test.testAdjustedConfidence(imgN45, img000, distance_threshold=d, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_180=test.testAdjustedConfidence(img180, img000, distance_threshold=d, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=d, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt);
-    print("%d\t%.02f:%d\t%.02f:%d\t%.02f:%d\t%.02f:%d\t%.02f:%d\t%.02f:%d" % (d, con000_P15[0],con000_P15[1], con000_N15[0],con000_N15[1], con000_P30[0],con000_P30[1], con000_N30[0],con000_N30[1], con000_180[0],con000_180[1],con000_false[0],con000_false[1]))
+    print("%d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d" % (d, con000_P15[0],con000_P15[1], con000_N15[0],con000_N15[1], con000_P30[0],con000_P30[1], con000_N30[0],con000_N30[1],con000_P45[0],con000_P45[1], con000_N45[0],con000_N45[1], con000_180[0],con000_180[1],con000_false[0],con000_false[1]))
 #exit()
+
+
 
 si = False
 dis = 100
 nn = 10     #neighbor_number
 print("\nAdjusted confidence test ratio(distance=%d, neighbor_number=%d)"%(dis,nn))
-print("%s\t%s\t%s\t%s\t%s\t%s\t%s" % ("ratio", "+15", "-15", "+30","-30","180","False"))
+print("%-5s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
 #test different threshold
 for bt in np.arange(0.2, 1.1, 0.1):
     con000_P15=test.testAdjustedConfidence(imgP15, img000, distance_threshold=dis, h_angle=15, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_N15=test.testAdjustedConfidence(imgN15, img000, distance_threshold=dis, h_angle=-15, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_P30=test.testAdjustedConfidence(imgP30, img000, distance_threshold=dis, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_N30=test.testAdjustedConfidence(imgN30, img000, distance_threshold=dis, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_P45=test.testAdjustedConfidence(imgP45, img000, distance_threshold=dis, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_N45=test.testAdjustedConfidence(imgN45, img000, distance_threshold=dis, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_180=test.testAdjustedConfidence(img180, img000, distance_threshold=dis, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=dis, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt);
 #print("%.2f\t%d\t%d\t%d\t%d\t%d\t%d" % (bt, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
-    print("%.2f\t%.02f:%d\t%.02f:%d\t%.02f:%d\t%.02f:%d\t%.02f:%d\t%.02f:%d" % (bt, con000_P15[0],con000_P15[1], con000_N15[0],con000_N15[1], con000_P30[0],con000_P30[1], con000_N30[0],con000_N30[1], con000_180[0],con000_180[1],con000_false[0],con000_false[1]))
+    print("%.02f\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d" % (bt, con000_P15[0],con000_P15[1], con000_N15[0],con000_N15[1], con000_P30[0],con000_P30[1], con000_N30[0],con000_N30[1], con000_P45[0],con000_P45[1], con000_N45[0],con000_N45[1], con000_180[0],con000_180[1],con000_false[0],con000_false[1]))
 
 #si = True
 dis = 50
 bt = 0.5    #blocked_threshold
 print("\nAdjusted confidence test neighbor number(ratio=%.2f, distance=%d)"%(bt,dis))
-print("%s\t%s\t%s\t%s\t%s\t%s\t%s" % ("ratio", "+15", "-15", "+30","-30","180","False"))
+print("%-5s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
 #test different threshold
 for nn in np.arange(4, 21, 2):
     con000_P15=test.testAdjustedConfidence(imgP15, img000, distance_threshold=dis, h_angle=15, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
     con000_N15=test.testAdjustedConfidence(imgN15, img000, distance_threshold=dis, h_angle=-15, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
     con000_P30=test.testAdjustedConfidence(imgP30, img000, distance_threshold=dis, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
     con000_N30=test.testAdjustedConfidence(imgN30, img000, distance_threshold=dis, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
+    con000_P45=test.testAdjustedConfidence(imgP45, img000, distance_threshold=dis, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
+    con000_N45=test.testAdjustedConfidence(imgN45, img000, distance_threshold=dis, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
     con000_180=test.testAdjustedConfidence(img180, img000, distance_threshold=dis, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
     con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=dis, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
 #print("%d\t%d\t%d\t%d\t%d\t%d\t%d" % (nn, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
-    print("%d\t%.02f:%d\t%.02f:%d\t%.02f:%d\t%.02f:%d\t%.02f:%d\t%.02f:%d" % (nn, con000_P15[0],con000_P15[1], con000_N15[0],con000_N15[1], con000_P30[0],con000_P30[1], con000_N30[0],con000_N30[1], con000_180[0],con000_180[1],con000_false[0],con000_false[1]))
+    print("%d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d\t%4.02f:%-6d" % (nn, con000_P15[0],con000_P15[1], con000_N15[0],con000_N15[1], con000_P30[0],con000_P30[1], con000_N30[0],con000_N30[1], con000_P45[0],con000_P45[1], con000_N45[0],con000_N45[1], con000_180[0],con000_180[1],con000_false[0],con000_false[1]))
+"""
+
+"""
