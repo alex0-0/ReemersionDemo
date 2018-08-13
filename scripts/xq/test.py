@@ -241,4 +241,4 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
         print(TAG + "distance threshold: " + str(distance_threshold) + "\tfiltered matched points: " + str(len(filtered_matches)))
         print(TAG + "precision: " + str(len(filtered_matches)/len(des2)))
         print(TAG + "testAdjustedConfidence: adjusted score is " + str(score))
-    return score, len(blocked), match.truePositiveConfidence(matches, kp1, kp2)
+    return score, len(blocked), match.truePositiveConfidence(filtered_matches, kp1, kp2)
