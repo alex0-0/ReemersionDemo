@@ -205,7 +205,7 @@ def testFindNeighbors(img, neighboring_num=10, detect_method=detect.extractORBFe
         show_image: decide if the result image should be presented or not
         matches_display_num: how many matches should be displayed on image
 """
-def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distance_threshold=100, blocked_threshold=0.8, neighbor_num=10, detect_method=detect.extractORBFeatures, show_image=False, matches_display_num=0, pos_dis=100):
+def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distance_threshold=0.3, blocked_threshold=0.8, neighbor_num=10, detect_method=detect.extractORBFeatures, show_image=False, matches_display_num=0, pos_dis=100):
     #extract feature points
     kp1, des1 = detect_method(query_img)
     kp2, des2 = detect_method(template_img)
@@ -218,7 +218,8 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
     
     #arrange matches by its distance
     matches = sorted(matches, key=lambda m:m.distance)
-    filtered_matches = [m for m in matches if m.distance<distance_threshold]
+#    filtered_matches = [m for m in matches if m.distance<distance_threshold]
+    filtered_matches = matches[:int(distance_threshold*len(kp2))]
 
     #assume two images have same size
     height, width = template_img.shape[:2]
@@ -245,7 +246,7 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
         print(TAG + "testAdjustedConfidence: adjusted score is " + str(score))
     return score, len(blocked), tp
 
-def batchTest(directory, blocked_threshold, distance, pos_dis, neighbor_num):
+def batchTest(directory, blocked_threshold, distance, pos_dis, neighbor_num, detect_method=detect.extractORBFeatures):
     def readImage(f):
         return cv2.imread(directory+"/"+f)
     
@@ -271,16 +272,27 @@ def batchTest(directory, blocked_threshold, distance, pos_dis, neighbor_num):
     print("Distance filtered matches")
     print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","false"))
     ##test different threshold
-    for d in range(20, 101, 10):
-        fm000_P15=filterFP(m000_P15,d);
-        fm000_N15=filterFP(m000_N15,d);
-        fm000_P30=filterFP(m000_P30,d);
-        fm000_N30=filterFP(m000_N30,d);
-        fm000_P45=filterFP(m000_P45,d);
-        fm000_N45=filterFP(m000_N45,d);
-        fm000_180=filterFP(m000_180,d);
-        fm000_false=filterFP(m000_false,d);
-        print("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d" % (d, len(fm000_P15), len(fm000_N15), len(fm000_P30), len(fm000_N30),len(fm000_P45), len(fm000_N45), len(fm000_180),len(fm000_false)))
+#    for d in range(20, 101, 10):
+#        fm000_P15=filterFP(m000_P15,d);
+#        fm000_N15=filterFP(m000_N15,d);
+#        fm000_P30=filterFP(m000_P30,d);
+#        fm000_N30=filterFP(m000_N30,d);
+#        fm000_P45=filterFP(m000_P45,d);
+#        fm000_N45=filterFP(m000_N45,d);
+#        fm000_180=filterFP(m000_180,d);
+#        fm000_false=filterFP(m000_false,d);
+
+    kps,des = detect_method(img000)
+    for d in np.arange(0.2, 1.1, 0.1):
+        fm000_P15=m000_P15[:int(d*len(kps))];
+        fm000_N15=m000_N15[:int(d*len(kps))];
+        fm000_P30=m000_P30[:int(d*len(kps))];
+        fm000_N30=m000_N30[:int(d*len(kps))];
+        fm000_P45=m000_P45[:int(d*len(kps))];
+        fm000_N45=m000_N45[:int(d*len(kps))];
+        fm000_180=m000_180[:int(d*len(kps))];
+        fm000_false=m000_false[:int(d*len(kps))];
+        print("%.2f\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d" % (d, len(fm000_P15), len(fm000_N15), len(fm000_P30), len(fm000_N30),len(fm000_P45), len(fm000_N45), len(fm000_180),len(fm000_false)))
         
     si = False  #show_image
 #    bt = blocked_threshold    #blocked_threshold
@@ -289,7 +301,7 @@ def batchTest(directory, blocked_threshold, distance, pos_dis, neighbor_num):
     print("\nAdjusted confidence test distance of matches(ratio=%.2f, neighbor_number=%d, pos_dis=%d)"%(blocked_threshold, neighbor_num, pos_dis))
     print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
     #test different threshold
-    for d in range(40, 101, 10):
+    for d in np.arange(0.2, 1.1, 0.1):
         con000_P15=testAdjustedConfidence(imgP15, img000, blocked_threshold=blocked_threshold, distance_threshold=d, pos_dis=pos_dis, h_angle=15, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
         con000_N15=testAdjustedConfidence(imgN15, img000, blocked_threshold=blocked_threshold, distance_threshold=d, pos_dis=pos_dis, h_angle=-15, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
         con000_P30=testAdjustedConfidence(imgP30, img000, blocked_threshold=blocked_threshold, distance_threshold=d, pos_dis=pos_dis, h_angle=30, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
@@ -298,9 +310,9 @@ def batchTest(directory, blocked_threshold, distance, pos_dis, neighbor_num):
         con000_N45=testAdjustedConfidence(imgN45, img000, blocked_threshold=blocked_threshold, distance_threshold=d, pos_dis=pos_dis, h_angle=-30, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
         con000_180=testAdjustedConfidence(img180, img000, blocked_threshold=blocked_threshold, distance_threshold=d, pos_dis=pos_dis, h_angle=180, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
         con000_false=testAdjustedConfidence(imgFalse, img000, distance_threshold=d, pos_dis=pos_dis, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=neighbor_num);
-        print("%d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (d, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
+        print("%.2f\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (d, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 
-    print("\nAdjusted confidence test ratio(distance=%d, neighbor_number=%d, pos_dis=%d)"%(distance,neighbor_num, pos_dis))
+    print("\nAdjusted confidence test ratio(distance=%.2f, neighbor_number=%d, pos_dis=%d)"%(distance,neighbor_num, pos_dis))
     print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
     #test different threshold
     for bt in np.arange(0.2, 1.1, 0.1):
@@ -315,7 +327,7 @@ def batchTest(directory, blocked_threshold, distance, pos_dis, neighbor_num):
     #print("%.2f\t%d\t%d\t%d\t%d\t%d\t%d" % (bt, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
         print("%.02f\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (bt, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 
-    print("\nAdjusted confidence test neighbor number(ratio=%.2f, distance=%d, pos_dis=%d)"%(blocked_threshold,distance, pos_dis))
+    print("\nAdjusted confidence test neighbor number(ratio=%.2f, distance=%.2f, pos_dis=%d)"%(blocked_threshold,distance, pos_dis))
     print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
     #test different threshold
     for nn in np.arange(4, 11, 1):
@@ -330,7 +342,7 @@ def batchTest(directory, blocked_threshold, distance, pos_dis, neighbor_num):
     #print("%d\t%d\t%d\t%d\t%d\t%d\t%d" % (nn, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
         print("%d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (nn, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 
-    print("\nAdjusted confidence test position distance(ratio=%.2f, m_dis=%d, neighbor_num=%d)"%(blocked_threshold,distance,neighbor_num))
+    print("\nAdjusted confidence test position distance(ratio=%.2f, m_dis=%.2, neighbor_num=%d)"%(blocked_threshold,distance,neighbor_num))
     print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
     #test different threshold
     for pd in np.arange(50, 151, 10):
@@ -356,7 +368,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--directory", help="image directory name, default value is current directory", type=str, required=True, dest="directory")
     parser.add_argument("-o", "--output", help="output file, default value is output", type=str, default="output", dest="output")
     parser.add_argument("-e", "--error", help="error output file, default value is error", type=str, default="error", dest="error")
-    parser.add_argument("-md", "--match_distance", help="distance threshold value for matches, default value is 100", type=int, default=100, dest="m_dis")
+    parser.add_argument("-md", "--match_distance", help="threshold value for matches number, default value is 0.2", type=float, default=0.2, dest="m_dis")
     parser.add_argument("-pd", "--pos_distance", help="distance threshold value for feature point position, default value is 100", type=int, default=100, dest="p_dis")
     parser.add_argument("-b", "--blocked", help="threshold for judging wheter feature point is blocked, default value is 0.5", type=float, default=0.5, dest="bt")
     parser.add_argument("-n", "--neighbor", help="neighbor number, default value is 10", type=int, default=10, dest="nn")
