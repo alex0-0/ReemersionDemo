@@ -540,11 +540,28 @@ def truePositiveConfidence(matches, query_kps, template_kps):
     q_center = getCenter(query_pts)
 
     t_dis = [sqrt(getSquareDistance(t, t_center)) for t in template_pts]
-    q_dis = [sqrt(getSquareDistance(q, q_center)) for q in query_pts]
+#    q_dis = [sqrt(getSquareDistance(q, q_center)) for q in query_pts]
 
-    ratios = [a/b for a,b in zip(q_dis,t_dis) if a*b != 0]
+#    ratios = [a/b for a,b in zip(q_dis,t_dis) if a*b != 0]
 
-    return jainIndex(ratios)
+#    return jainIndex(ratios)
+
+    #calculate relative position between KP and centroid
+    t_pos = [(t[0]-t_center[0],t[1]-t_center[1]) for t in template_pts]
+    q_pos = [(q[0]-q_center[0],q[1]-q_center[1]) for q in query_pts]
+
+#    dis = []
+#    for i in range(len(t_pos)):
+#        dis.append(sqrt(getSquareDistance(t_pos[i], q_pos[i])))
+#    if DEBUG > 1:
+#        print(TAG + str(dis))
+#    return sum(dis)/len(dis)
+
+    ratio = []
+    for i in range(len(t_pos)):
+        if t_dis[i] > 0:
+            ratio.append(sqrt(getSquareDistance(t_pos[i], q_pos[i]))/t_dis[i])
+    return jainIndex(ratio)
 
 """return Jain fainess index. Refer to https://en.wikipedia.org/wiki/Fairness_measure
 
@@ -552,6 +569,8 @@ def truePositiveConfidence(matches, query_kps, template_kps):
         x: a list of number
 """
 def jainIndex(x):
+    x = sorted(x)
+    x = x[int(0.05*len(x)):int(0.95*len(x))]
     a = sum(x)**2
     b = len(x) * sum([i**2 for i in x])
     if b == 0:
