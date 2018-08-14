@@ -395,6 +395,7 @@ def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, n
     
     #record unmatched feature points that are probably blocked
     blocked = []
+    nbs = []
     if return_neighbors:
         r_nbs = []
 
