@@ -372,7 +372,7 @@ def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neig
 
     return score, blocked
 
-def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, neighbor_num=10, h_angle=0, v_angle=0, blocked_threshold=0.8, return_neighbors=False):
+def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, neighbor_num=5, h_angle=0, v_angle=0, blocked_threshold=0.8, dis_threshold=100, return_neighbors=False):
     #just record the indexes
     matched_kps = [m.trainIdx for m in matches]
     n_status = [0] * len(template_kps)
@@ -383,7 +383,7 @@ def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, n
     if DEBUG > 1:
         print(TAG + "unmatched feature points: " + str(unmatched_kps))
     
-    neighbor_num=neighbor_num/2 #default neighbor number 10 is probably too big
+#    neighbor_num=neighbor_num/2 #default neighbor number 10 is probably too big
     
     neighbors = findNeighbors(template_kps, neighbor_num)
 
@@ -490,7 +490,7 @@ def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, n
     else:
         score = len(matches)/(len(template_kps)-len(blocked)) #* truePositiveConfidence(matches, query_kps, template_kps)
 
-    tp=truePositiveConfidence(matches, query_kps, template_kps)
+    tp=truePositiveConfidence(matches, query_kps, template_kps, dis_threshold)
     if DEBUG > 0:
         print("matches:%d\t total fps:%d\t blocked fps:%d" % (len(matches),len(template_kps),len(blocked)))
 #just for debug
@@ -538,7 +538,7 @@ def checkNeighbor(nb,neighbors,idx, matches_kps,blocked_threshold):
     n_status[nb]=1
     return False
 
-def truePositiveConfidence(matches, query_kps, template_kps):
+def truePositiveConfidence(matches, query_kps, template_kps, dis_threshold=100):
     template_pts = [template_kps[m.trainIdx].pt for m in matches]
     query_pts = [query_kps[m.queryIdx].pt for m in matches]
 
@@ -564,7 +564,7 @@ def truePositiveConfidence(matches, query_kps, template_kps):
         dis.append(sqrt(getSquareDistance(t_pos[i], q_pos[i])))
     if DEBUG > 1:
         print(TAG + str(dis))
-    return aFun(sum(dis)/len(dis))
+    return aFun(sum(dis)/len(dis), dis_threshold)
 
 #ratio = []
 #    for i in range(len(t_pos)):
@@ -572,8 +572,7 @@ def truePositiveConfidence(matches, query_kps, template_kps):
 #           ratio.append(sqrt(getSquareDistance(t_pos[i], q_pos[i]))/t_dis[i])
 #   return jainIndex(ratio)
 
-def aFun(dist):
-    threshold=100
+def aFun(dist, threshold=100):
     alpha=1
     if(dist<=threshold):
         return 1

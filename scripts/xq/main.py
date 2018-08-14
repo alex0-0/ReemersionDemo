@@ -111,7 +111,7 @@ for d in range(20, 101, 10):
 
 si = False  #show_image
 bt = 0.5    #blocked_threshold
-nn = 10     #neighbor_number
+nn = 5     #neighbor_number
 print("\nAdjusted confidence test distance(ratio=%.2f, neighbor_number=%d)"%(bt,nn))
 print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
 #test different threshold
@@ -132,7 +132,7 @@ exit()
 
 si = False
 dis = 100
-nn = 10     #neighbor_number
+nn = 5     #neighbor_number
 print("\nAdjusted confidence test ratio(distance=%d, neighbor_number=%d)"%(dis,nn))
 print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
 #test different threshold
@@ -154,7 +154,7 @@ bt = 0.5    #blocked_threshold
 print("\nAdjusted confidence test neighbor number(ratio=%.2f, distance=%d)"%(bt,dis))
 print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
 #test different threshold
-for nn in np.arange(4, 21, 2):
+for nn in np.arange(4, 11, 1):
     con000_P15=test.testAdjustedConfidence(imgP15, img000, distance_threshold=dis, h_angle=15, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
     con000_N15=test.testAdjustedConfidence(imgN15, img000, distance_threshold=dis, h_angle=-15, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
     con000_P30=test.testAdjustedConfidence(imgP30, img000, distance_threshold=dis, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);

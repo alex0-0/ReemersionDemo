@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python test.py -dis 100 -b 0.5 -n 10 -d lamp
-python test.py -dis 100 -b 0.5 -n 10 -d horse
-python test.py -dis 100 -b 0.5 -n 10 -d pops
-python test.py -dis 100 -b 0.5 -n 10 -d utilities
+python test.py -pd 100 -md 100 -b 0.5 -n 5 -d lamp
+python test.py -pd 100 -md 100 -b 0.5 -n 5 -d horse
+python test.py -pd 100 -md 100 -b 0.5 -n 5 -d pops
+python test.py -pd 100 -md 100 -b 0.5 -n 5 -d utilities
