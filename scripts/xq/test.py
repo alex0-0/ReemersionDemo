@@ -8,6 +8,8 @@ from match import DescriptorType
 import os
 import matplotlib.pyplot as plt
 import glob
+import argparse
+import sys
 
 #0: turn off debug mode
 #1: print out necessary debug log
@@ -242,3 +244,127 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
         print(TAG + "precision: " + str(len(filtered_matches)/len(des2)))
         print(TAG + "testAdjustedConfidence: adjusted score is " + str(score))
     return score, len(blocked), match.truePositiveConfidence(filtered_matches, kp1, kp2)
+
+def batchTest(directory, blocked_threshold, distance, neighbor_num):
+    def readImage(f):
+        return cv2.imread(directory+"/"+f)
+    
+    img000 = readImage("000.JPG")
+    imgP15 = readImage("015.JPG")
+    imgN15 = readImage("-15.JPG")
+    imgP30 = readImage("030.JPG")
+    imgN30 = readImage("-30.JPG")
+    imgP45 = readImage("045.JPG")
+    imgN45 = readImage("-45.JPG")
+    img180 = readImage("180.JPG")
+    imgFalse = readImage("false.JPG")
+
+    m000_P15=findMatches(imgP15,img000);
+    m000_N15=findMatches(imgN15,img000);
+    m000_P30=findMatches(imgP30,img000);
+    m000_N30=findMatches(imgN30,img000);
+    m000_P45=findMatches(imgP45,img000);
+    m000_N45=findMatches(imgN45,img000);
+    m000_180=findMatches(img180,img000);
+    m000_false=findMatches(img180,imgFalse);
+    
+    print("Distance filtered matches")
+    print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","false"))
+    ##test different threshold
+    for d in range(20, 101, 10):
+        fm000_P15=filterFP(m000_P15,d);
+        fm000_N15=filterFP(m000_N15,d);
+        fm000_P30=filterFP(m000_P30,d);
+        fm000_N30=filterFP(m000_N30,d);
+        fm000_P45=filterFP(m000_P45,d);
+        fm000_N45=filterFP(m000_N45,d);
+        fm000_180=filterFP(m000_180,d);
+        fm000_false=filterFP(m000_false,d);
+        print("%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d" % (d, len(fm000_P15), len(fm000_N15), len(fm000_P30), len(fm000_N30),len(fm000_P45), len(fm000_N45), len(fm000_180),len(fm000_false)))
+        
+    si = False  #show_image
+#    bt = blocked_threshold    #blocked_threshold
+#    nn = neighbor_num     #neighbor_number
+#    dis = distance
+    print("\nAdjusted confidence test distance(ratio=%.2f, neighbor_number=%d)"%(blocked_threshold,neighbor_num))
+    print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
+    #test different threshold
+    for d in range(40, 101, 10):
+        con000_P15=testAdjustedConfidence(imgP15, img000, blocked_threshold=blocked_threshold, distance_threshold=d, h_angle=15, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
+        con000_N15=testAdjustedConfidence(imgN15, img000, blocked_threshold=blocked_threshold, distance_threshold=d, h_angle=-15, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
+        con000_P30=testAdjustedConfidence(imgP30, img000, blocked_threshold=blocked_threshold, distance_threshold=d, h_angle=30, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
+        con000_N30=testAdjustedConfidence(imgN30, img000, blocked_threshold=blocked_threshold, distance_threshold=d, h_angle=-30, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
+        con000_P45=testAdjustedConfidence(imgP45, img000, blocked_threshold=blocked_threshold, distance_threshold=d, h_angle=30, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
+        con000_N45=testAdjustedConfidence(imgN45, img000, blocked_threshold=blocked_threshold, distance_threshold=d, h_angle=-30, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
+        con000_180=testAdjustedConfidence(img180, img000, blocked_threshold=blocked_threshold, distance_threshold=d, h_angle=180, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
+        con000_false=testAdjustedConfidence(imgFalse, img000, distance_threshold=d, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=neighbor_num);
+        print("%d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (d, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
+
+    print("\nAdjusted confidence test ratio(distance=%d, neighbor_number=%d)"%(distance,neighbor_num))
+    print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
+    #test different threshold
+    for bt in np.arange(0.2, 1.1, 0.1):
+        con000_P15=testAdjustedConfidence(imgP15, img000, neighbor_num=neighbor_num, distance_threshold=distance, h_angle=15, show_image=si, matches_display_num=100, blocked_threshold=bt);
+        con000_N15=testAdjustedConfidence(imgN15, img000, neighbor_num=neighbor_num, distance_threshold=distance, h_angle=-15, show_image=si, matches_display_num=100, blocked_threshold=bt);
+        con000_P30=testAdjustedConfidence(imgP30, img000, neighbor_num=neighbor_num, distance_threshold=distance, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt);
+        con000_N30=testAdjustedConfidence(imgN30, img000, neighbor_num=neighbor_num, distance_threshold=distance, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt);
+        con000_P45=testAdjustedConfidence(imgP45, img000, neighbor_num=neighbor_num, distance_threshold=distance, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt);
+        con000_N45=testAdjustedConfidence(imgN45, img000, neighbor_num=neighbor_num, distance_threshold=distance, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt);
+        con000_180=testAdjustedConfidence(img180, img000, neighbor_num=neighbor_num, distance_threshold=distance, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=bt);
+        con000_false=testAdjustedConfidence(imgFalse, img000, neighbor_num=neighbor_num, distance_threshold=distance, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    #print("%.2f\t%d\t%d\t%d\t%d\t%d\t%d" % (bt, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
+        print("%.02f\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (bt, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
+
+    bt = blocked_threshold    #blocked_threshold
+
+    print("\nAdjusted confidence test neighbor number(ratio=%.2f, distance=%d)"%(blocked_threshold,distance))
+    print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
+    #test different threshold
+    for nn in np.arange(4, 21, 2):
+        con000_P15=testAdjustedConfidence(imgP15, img000, distance_threshold=distance, h_angle=15, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=nn);
+        con000_N15=testAdjustedConfidence(imgN15, img000, distance_threshold=distance, h_angle=-15, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=nn);
+        con000_P30=testAdjustedConfidence(imgP30, img000, distance_threshold=distance, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=nn);
+        con000_N30=testAdjustedConfidence(imgN30, img000, distance_threshold=distance, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=nn);
+        con000_P45=testAdjustedConfidence(imgP45, img000, distance_threshold=distance, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=nn);
+        con000_N45=testAdjustedConfidence(imgN45, img000, distance_threshold=distance, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=nn);
+        con000_180=testAdjustedConfidence(img180, img000, distance_threshold=distance, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=nn);
+        con000_false=testAdjustedConfidence(imgFalse, img000, distance_threshold=distance, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=nn);
+    #print("%d\t%d\t%d\t%d\t%d\t%d\t%d" % (nn, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
+        print("%d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (nn, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
+
+
+def helpMsg():
+    msg = "usage:\n"
+    msg += "\tTest!"
+    return msg
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=helpMsg())
+    parser.add_argument("-d", "--directory", help="image directory name, default value is current directory", type=str, required=True, dest="directory")
+    parser.add_argument("-o", "--output", help="output file, default value is output", type=str, default="output", dest="output")
+    parser.add_argument("-e", "--error", help="error output file, default value is error", type=str, default="error", dest="error")
+    parser.add_argument("-dis", "--distance", help="distance threshold value, default value is 100", type=int, default=100, dest="dis")
+    parser.add_argument("-b", "--blocked", help="threshold for judging wheter feature point is blocked, default value is 0.5", type=float, default=0.5, dest="bt")
+    parser.add_argument("-n", "--neighbor", help="neighbor number, default value is 10", type=int, default=10, dest="nn")
+
+    args = parser.parse_args()
+    output = "%s_%s_dis_%d_bt_%.2f_nn_%d" % (args.output, args.directory, args.dis, args.bt, args.nn)
+    error = "%s_%s_dis_%d_bt_%.2f_nn_%d" % (args.error, args.directory, args.dis, args.bt, args.nn)
+
+    #check if the output file exist, if yes, add a suffix
+    if os.path.exists(output):
+        i = 0
+        while os.path.exists("%s_%s" % (output, i)):
+            i += 1
+        output = "%s_%s" % (output, i)
+    if os.path.exists(error):
+        i = 0
+        while os.path.exists("%s_%s" % (error, i)):
+            i += 1
+        error = "%s_%s" % (error, i)
+    #redirect output to file
+    sys.stdout = open(output,'a')
+    sys.stderr = open(error,'a')
+    #sys.stdout = sys.__stdout__    #restore to default stdout
+
+    batchTest(args.directory, args.bt, args.dis, args.nn)
