@@ -222,7 +222,7 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
 
     #assume two images have same size
     height, width = template_img.shape[:2]
-    score, blocked, nbs = match.getAdjustedConfidenceByShrinkTemplateNew(filtered_matches, kp1, kp2, neighbor_num=neighbor_num, h_angle=h_angle, v_angle=v_angle, blocked_threshold=blocked_threshold, return_neighbors=True)
+    score, tp, blocked, nbs = match.getAdjustedConfidenceByShrinkTemplateNew(filtered_matches, kp1, kp2, neighbor_num=neighbor_num, h_angle=h_angle, v_angle=v_angle, blocked_threshold=blocked_threshold, return_neighbors=True)
 
     #display matches_display_num best matches
     if show_image:
@@ -243,7 +243,7 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
         print(TAG + "distance threshold: " + str(distance_threshold) + "\tfiltered matched points: " + str(len(filtered_matches)))
         print(TAG + "precision: " + str(len(filtered_matches)/len(des2)))
         print(TAG + "testAdjustedConfidence: adjusted score is " + str(score))
-    return score, len(blocked), match.truePositiveConfidence(filtered_matches, kp1, kp2)
+    return score, len(blocked), tp
 
 def batchTest(directory, blocked_threshold, distance, neighbor_num):
     def readImage(f):

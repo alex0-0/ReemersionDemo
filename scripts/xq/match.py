@@ -180,7 +180,7 @@ def getSquareDistance(pt1, pt2):
 """
 def findNeighbors(kps, n=10):
     r = []
-    dt=200
+    dt=100
     c=1
     for k in kps:
         dist= [getSquareDistance(k.pt, kp.pt) for kp in kps]
@@ -206,10 +206,14 @@ def findNeighbors(kps, n=10):
             elif (d.pt[1] > k.pt[1]) and abs(d.pt[0]-k.pt[0])<dt:
                 down.append(i)
     
-        left = sorted(left, key = lambda x:dist[x])
-        right = sorted(right, key = lambda x:dist[x])
-        up = sorted(up, key = lambda x:dist[x])
-        down = sorted(down, key = lambda x:dist[x])
+    #left = sorted(left, key = lambda x:dist[x])
+    #   right = sorted(right, key = lambda x:dist[x])
+    #   up = sorted(up, key = lambda x:dist[x])
+    #   down = sorted(down, key = lambda x:dist[x])
+        left = sorted(left, key = lambda x:(k.pt[0]-kps[x].pt[0]))
+        right = sorted(right, key = lambda x:(kps[x].pt[0]-k.pt[0]))
+        up = sorted(up, key = lambda x:(k.pt[1]-kps[x].pt[1]))
+        down = sorted(down, key = lambda x:(kps[x].pt[1]-k.pt[1]))
         
         #if len(left)>n:
         #    left=left[:n]
@@ -379,6 +383,8 @@ def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, n
     if DEBUG > 1:
         print(TAG + "unmatched feature points: " + str(unmatched_kps))
     
+    neighbor_num=neighbor_num/2 #default neighbor number 10 is probably too big
+    
     neighbors = findNeighbors(template_kps, neighbor_num)
 
 #which part of neighbors should be checked. 0, left, 1, right, 2, up, 3, down
@@ -405,9 +411,10 @@ def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, n
         
         if DEBUG > 1:
             print("%s neighbor points of %d %s: %s" % (TAG, i, str(template_kps[i].pt), str(nbs)))
-        if len(nbs) == 0:
+            #if len(nbs) == 0:
+        if len(nbs) < neighbor_num:
             blocked.append(i)
-            n_status[i] = 2
+            #n_status[i] = 2
             continue
 #matched_nb = [nb for nb in nbs if nb in matched_kps]
 
@@ -481,15 +488,16 @@ def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, n
     if (len(template_kps)-len(blocked)) == 0:
         score = 0
     else:
-        score = len(matches)/(len(template_kps)-len(blocked)) * truePositiveConfidence(matches, query_kps, template_kps)  
+        score = len(matches)/(len(template_kps)-len(blocked)) #* truePositiveConfidence(matches, query_kps, template_kps)
 
+    tp=truePositiveConfidence(matches, query_kps, template_kps)
     if DEBUG > 0:
         print("matches:%d\t total fps:%d\t blocked fps:%d" % (len(matches),len(template_kps),len(blocked)))
 #just for debug
     if return_neighbors:
-        return score, blocked, r_nbs
+        return score, tp, blocked, r_nbs
     
-    return score, blocked
+    return score, tp, blocked
 
 
 def checkNeighbor(nb,neighbors,idx, matches_kps,blocked_threshold):
@@ -551,18 +559,26 @@ def truePositiveConfidence(matches, query_kps, template_kps):
     t_pos = [(t[0]-t_center[0],t[1]-t_center[1]) for t in template_pts]
     q_pos = [(q[0]-q_center[0],q[1]-q_center[1]) for q in query_pts]
 
-#    dis = []
-#    for i in range(len(t_pos)):
-#        dis.append(sqrt(getSquareDistance(t_pos[i], q_pos[i])))
-#    if DEBUG > 1:
-#        print(TAG + str(dis))
-#    return sum(dis)/len(dis)
-
-    ratio = []
+    dis = []
     for i in range(len(t_pos)):
-        if t_dis[i] > 0:
-            ratio.append(sqrt(getSquareDistance(t_pos[i], q_pos[i]))/t_dis[i])
-    return jainIndex(ratio)
+        dis.append(sqrt(getSquareDistance(t_pos[i], q_pos[i])))
+    if DEBUG > 1:
+        print(TAG + str(dis))
+    return aFun(sum(dis)/len(dis))
+
+#ratio = []
+#    for i in range(len(t_pos)):
+#       if t_dis[i] > 0:
+#           ratio.append(sqrt(getSquareDistance(t_pos[i], q_pos[i]))/t_dis[i])
+#   return jainIndex(ratio)
+
+def aFun(dist):
+    threshold=100
+    alpha=1
+    if(dist<=threshold):
+        return 1
+    else:
+        return np.exp(-(dist-threshold)/threshold/alpha)
 
 """return Jain fainess index. Refer to https://en.wikipedia.org/wiki/Fairness_measure
 
