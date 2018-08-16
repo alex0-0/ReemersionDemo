@@ -298,7 +298,7 @@ def batchTest(directory, blocked_threshold, distance, pos_dis, neighbor_num, det
 #    bt = blocked_threshold    #blocked_threshold
 #    nn = neighbor_num     #neighbor_number
 #    dis = distance
-    print("\nAdjusted confidence test distance of matches(ratio=%.2f, neighbor_number=%d, pos_dis=%d)"%(blocked_threshold, neighbor_num, pos_dis))
+    print("\nAdjusted confidence test number of matches(ratio=%.2f, neighbor_number=%d, pos_dis=%d)"%(blocked_threshold, neighbor_num, pos_dis))
     print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
     #test different threshold
     for d in np.arange(0.2, 1.1, 0.1):
@@ -342,7 +342,7 @@ def batchTest(directory, blocked_threshold, distance, pos_dis, neighbor_num, det
     #print("%d\t%d\t%d\t%d\t%d\t%d\t%d" % (nn, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
         print("%d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (nn, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 
-    print("\nAdjusted confidence test position distance(ratio=%.2f, m_dis=%.2, neighbor_num=%d)"%(blocked_threshold,distance,neighbor_num))
+    print("\nAdjusted confidence test position distance(ratio=%.2f, m_dis=%.2f, neighbor_num=%d)"%(blocked_threshold,distance,neighbor_num))
     print("%-5s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s\t%-20s" % ("dist", "+15", "-15", "+30","-30","+45","-45","180","False"))
     #test different threshold
     for pd in np.arange(50, 151, 10):
