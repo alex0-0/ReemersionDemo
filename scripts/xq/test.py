@@ -30,6 +30,28 @@ def testDetect(img, detect_method=detect.extractORBFeatures, title=None):
     cv2.imshow(t, img_kp)
     cv2.waitKey(0)
 
+def testMatchPrecision(img_1, img_2, detect_method=detect.extractORBFeatures):
+    #extract feature points
+    kp1, des1 = detect_method(img_1)
+    kp2, des2 = detect_method(img_2)
+    #match feature points
+    if detect_method == detect.extractORBFeatures:
+        matches = match.matchFeature(des1, kp1, des2, kp2, DescriptorType.ORB)
+    elif detect_method == detect.extractSURFFeatures:
+        matches = match.matchFeature(des1, kp1, des2, kp2, DescriptorType.SURF)
+    # Draw matches.
+    #img3 = cv2.drawMatchesKnn(img,kp1,img_1,kp2,matches, None, flags=2)
+    #img3 = cv2.drawMatches(img,kp1,img_1,kp2,matches, None, flags=2)
+    #
+    #cv2.imshow("match", img3)
+    #cv2.waitKey(0)
+    if DEBUG > 0:
+        print(TAG + "matches size: " + str(len(matches)))
+        print(TAG + "query key points size: " + str(len(kp1)))
+        print(TAG + "train key points size: " + str(len(kp2)))
+    return len(matches)/len(kp2)
+    
+
 def testMatch(img_1, img_2, detect_method=detect.extractORBFeatures):
     #extract feature points
     kp1, des1 = detect_method(img_1)
@@ -309,7 +331,7 @@ def batchTest(directory, blocked_threshold, distance, pos_dis, neighbor_num, det
         con000_P45=testAdjustedConfidence(imgP45, img000, blocked_threshold=blocked_threshold, distance_threshold=d, pos_dis=pos_dis, h_angle=30, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
         con000_N45=testAdjustedConfidence(imgN45, img000, blocked_threshold=blocked_threshold, distance_threshold=d, pos_dis=pos_dis, h_angle=-30, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
         con000_180=testAdjustedConfidence(img180, img000, blocked_threshold=blocked_threshold, distance_threshold=d, pos_dis=pos_dis, h_angle=180, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
-        con000_false=testAdjustedConfidence(imgFalse, img000, distance_threshold=d, pos_dis=pos_dis, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=neighbor_num);
+        con000_false=testAdjustedConfidence(imgFalse, img000, distance_threshold=d, pos_dis=pos_dis, h_angle=10, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=neighbor_num);
         print("%.2f\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (d, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 
     print("\nAdjusted confidence test ratio(distance=%.2f, neighbor_number=%d, pos_dis=%d)"%(distance,neighbor_num, pos_dis))
@@ -323,7 +345,7 @@ def batchTest(directory, blocked_threshold, distance, pos_dis, neighbor_num, det
         con000_P45=testAdjustedConfidence(imgP45, img000, neighbor_num=neighbor_num, distance_threshold=distance, pos_dis=pos_dis, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt);
         con000_N45=testAdjustedConfidence(imgN45, img000, neighbor_num=neighbor_num, distance_threshold=distance, pos_dis=pos_dis, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt);
         con000_180=testAdjustedConfidence(img180, img000, neighbor_num=neighbor_num, distance_threshold=distance, pos_dis=pos_dis, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=bt);
-        con000_false=testAdjustedConfidence(imgFalse, img000, neighbor_num=neighbor_num, distance_threshold=distance, pos_dis=pos_dis, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt);
+        con000_false=testAdjustedConfidence(imgFalse, img000, neighbor_num=neighbor_num, distance_threshold=distance, pos_dis=pos_dis, h_angle=10, show_image=si, matches_display_num=100, blocked_threshold=bt);
     #print("%.2f\t%d\t%d\t%d\t%d\t%d\t%d" % (bt, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
         print("%.02f\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (bt, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 
@@ -338,7 +360,7 @@ def batchTest(directory, blocked_threshold, distance, pos_dis, neighbor_num, det
         con000_P45=testAdjustedConfidence(imgP45, img000, distance_threshold=distance, pos_dis=pos_dis, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=nn);
         con000_N45=testAdjustedConfidence(imgN45, img000, distance_threshold=distance, pos_dis=pos_dis, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=nn);
         con000_180=testAdjustedConfidence(img180, img000, distance_threshold=distance, pos_dis=pos_dis, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=nn);
-        con000_false=testAdjustedConfidence(imgFalse, img000, distance_threshold=distance, pos_dis=pos_dis, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=nn);
+        con000_false=testAdjustedConfidence(imgFalse, img000, distance_threshold=distance, pos_dis=pos_dis, h_angle=10, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=nn);
     #print("%d\t%d\t%d\t%d\t%d\t%d\t%d" % (nn, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
         print("%d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (nn, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 
@@ -353,7 +375,7 @@ def batchTest(directory, blocked_threshold, distance, pos_dis, neighbor_num, det
         con000_P45=testAdjustedConfidence(imgP45, img000, blocked_threshold=blocked_threshold, distance_threshold=distance, pos_dis=pd, h_angle=30, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
         con000_N45=testAdjustedConfidence(imgN45, img000, blocked_threshold=blocked_threshold, distance_threshold=distance, pos_dis=pd, h_angle=-30, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
         con000_180=testAdjustedConfidence(img180, img000, blocked_threshold=blocked_threshold, distance_threshold=distance, pos_dis=pd, h_angle=180, show_image=si, matches_display_num=100, neighbor_num=neighbor_num);
-        con000_false=testAdjustedConfidence(imgFalse, img000, distance_threshold=distance, pos_dis=pd, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=neighbor_num);
+        con000_false=testAdjustedConfidence(imgFalse, img000, distance_threshold=distance, pos_dis=pd, h_angle=10, show_image=si, matches_display_num=100, blocked_threshold=blocked_threshold, neighbor_num=neighbor_num);
     #print("%d\t%d\t%d\t%d\t%d\t%d\t%d" % (nn, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
         print("%d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (pd, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 

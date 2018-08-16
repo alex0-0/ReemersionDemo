@@ -485,10 +485,15 @@ def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, n
     if DEBUG > 0:
         print(TAG + "probably blocked feature points: " + str(blocked))
 
-    if (len(template_kps)-len(blocked)) == 0:
+    angle_change = abs(h_angle)
+    if angle_change == 180:
+        angle_change = 0
+
+    if (len(template_kps)-len(blocked)) == 0 or angle_change >= 90:
         score = 0
     else:
-        score = len(matches)/(len(template_kps)-len(blocked)) #* truePositiveConfidence(matches, query_kps, template_kps)
+        score = len(matches)/((len(template_kps)-len(blocked))*(90-angle_change)/90) 
+        #* truePositiveConfidence(matches, query_kps, template_kps)
 
     tp=truePositiveConfidence(matches, query_kps, template_kps, dis_threshold)
     if DEBUG > 0:

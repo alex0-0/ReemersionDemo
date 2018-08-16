@@ -123,7 +123,7 @@ for d in range(40, 101, 10):
     con000_P45=test.testAdjustedConfidence(imgP45, img000, distance_threshold=d, neighbor_num=nn, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_N45=test.testAdjustedConfidence(imgN45, img000, distance_threshold=d, neighbor_num=nn, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_180=test.testAdjustedConfidence(img180, img000, distance_threshold=d, neighbor_num=nn, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=bt);
-    con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=d, neighbor_num=nn, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=d, neighbor_num=nn, h_angle=10, show_image=si, matches_display_num=100, blocked_threshold=bt);
     print("%d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (d, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 
 exit()
@@ -144,7 +144,7 @@ for bt in np.arange(0.2, 1.1, 0.1):
     con000_P45=test.testAdjustedConfidence(imgP45, img000, distance_threshold=dis, neighbor_num=nn, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_N45=test.testAdjustedConfidence(imgN45, img000, distance_threshold=dis, neighbor_num=nn, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt);
     con000_180=test.testAdjustedConfidence(img180, img000, distance_threshold=dis, neighbor_num=nn, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=bt);
-    con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=dis, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt);
+    con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=dis, h_angle=10, show_image=si, matches_display_num=100, blocked_threshold=bt);
 #print("%.2f\t%d\t%d\t%d\t%d\t%d\t%d" % (bt, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
     print("%.02f\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (bt, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 
@@ -162,7 +162,7 @@ for nn in np.arange(4, 11, 1):
     con000_P45=test.testAdjustedConfidence(imgP45, img000, distance_threshold=dis, h_angle=30, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
     con000_N45=test.testAdjustedConfidence(imgN45, img000, distance_threshold=dis, h_angle=-30, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
     con000_180=test.testAdjustedConfidence(img180, img000, distance_threshold=dis, h_angle=180, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
-    con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=dis, h_angle=100, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
+    con000_false=test.testAdjustedConfidence(imgFalse, img000, distance_threshold=dis, h_angle=10, show_image=si, matches_display_num=100, blocked_threshold=bt, neighbor_num=nn);
 #print("%d\t%d\t%d\t%d\t%d\t%d\t%d" % (nn, con000_P15[1], con000_N15[1], con000_P30[1], con000_N30[1], con000_180[1],con000_false[1]))
     print("%d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d\t%4.02f:%.02f:%-6d" % (nn, con000_P15[0],con000_P15[2],con000_P15[1], con000_N15[0],con000_N15[2],con000_N15[1], con000_P30[0],con000_P30[2],con000_P30[1], con000_N30[0],con000_N30[2],con000_N30[1],con000_P45[0],con000_P45[2],con000_P45[1], con000_N45[0],con000_N45[2],con000_N45[1], con000_180[0],con000_180[2],con000_180[1],con000_false[0],con000_false[2],con000_false[1]))
 """
