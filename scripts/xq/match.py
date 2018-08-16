@@ -327,7 +327,7 @@ def getAdjustedConfidenceByShrinkTemplate(matches, query_kps, template_kps, neig
         check_index = 1
     elif v_angle > 0:
         check_index = 2
-    elif h_angle < 0:
+    elif v_angle < 0:
         check_index = 3
     else:
         return len(matches)/len(template_kps)
@@ -390,11 +390,11 @@ def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, n
 #which part of neighbors should be checked. 0, left, 1, right, 2, up, 3, down
     if h_angle < 0:
         check_index = 0
-    elif h_angle > 0:
+    elif h_angle >= 0:
         check_index = 1
     elif v_angle > 0:
         check_index = 2
-    elif h_angle < 0:
+    elif v_angle <= 0:
         check_index = 3
     else:
         return len(matches)/len(template_kps)
