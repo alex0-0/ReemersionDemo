@@ -152,7 +152,7 @@ def drawMatches(img1, kp1, img2, kp2, matches, thickness = 1, color=None, show_c
         pts = [tuple(np.round(p.pt).astype(int)+np.array([img1.shape[1],0]))  for p in custom_point2]
         [cv2.circle(new_img,p,2*r,(0,255,0),thickness,4) for p in pts]
     
-    #plt.figure(figsize=(15,15))
+    plt.figure(figsize=(15,15))
     plt.imshow(new_img)
     plt.show()
 
@@ -485,6 +485,8 @@ def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, n
     if DEBUG > 0:
         print(TAG + "probably blocked feature points: " + str(blocked))
 
+    tp=truePositiveConfidence(matches, query_kps, template_kps, dis_threshold)
+
     angle_change = abs(h_angle)
     if angle_change == 180:
         angle_change = 0
@@ -492,10 +494,10 @@ def getAdjustedConfidenceByShrinkTemplateNew(matches, query_kps, template_kps, n
     if (len(template_kps)-len(blocked)) == 0 or angle_change >= 90:
         score = 0
     else:
-        score = len(matches)/((len(template_kps)-len(blocked))*(90-angle_change)/90) 
-        #* truePositiveConfidence(matches, query_kps, template_kps)
+        score = len(matches)/((len(template_kps)-len(blocked))*(90-angle_change)/90) * tp
+    if score > 1:
+        score = 1
 
-    tp=truePositiveConfidence(matches, query_kps, template_kps, dis_threshold)
     if DEBUG > 0:
         print("matches:%d\t total fps:%d\t blocked fps:%d" % (len(matches),len(template_kps),len(blocked)))
 #just for debug
@@ -567,8 +569,11 @@ def truePositiveConfidence(matches, query_kps, template_kps, dis_threshold=100):
     dis = []
     for i in range(len(t_pos)):
         dis.append(sqrt(getSquareDistance(t_pos[i], q_pos[i])))
-    if DEBUG > 1:
-        print(TAG + str(dis))
+
+    dis = sorted(dis)[:int(0.95*len(dis))]
+    #if DEBUG > 1:
+    #    print(TAG + str(dis))
+   # print(TAG + str(sum(dis)/len(dis)))
     return aFun(sum(dis)/len(dis), dis_threshold)
 
 #ratio = []

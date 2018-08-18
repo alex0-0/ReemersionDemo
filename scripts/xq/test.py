@@ -14,17 +14,20 @@ import sys
 #0: turn off debug mode
 #1: print out necessary debug log
 #2: print out verbose log
-DEBUG = 0   
+DEBUG = 0
 TAG = "TEST\t"
 
 def testDetect(img, detect_method=detect.extractORBFeatures, title=None):
     kps, des = detect_method(img)
     img_kp = cv2.drawKeypoints(img, kps, outImage=np.array([]), color=(0, 0, 255), flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    cv2.waitKey(0)
 
     #display detected feature points
     t = "image with key points"
     if title != None:
         t = title
+    if DEBUG > 0:
+        print(TAG + "key points number: " + str(len(kps)))
     cv2.namedWindow(t, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(t,600,600)
     cv2.imshow(t, img_kp)
@@ -71,6 +74,9 @@ def testMatch(img_1, img_2, detect_method=detect.extractORBFeatures):
         print(TAG + "matches size: " + str(len(matches)))
         print(TAG + "query key points size: " + str(len(kp1)))
         print(TAG + "train key points size: " + str(len(kp2)))
+
+    #matches = sorted(matches, key=lambda m:m.distance)
+    #matches = matches[:int(0.5*len(kp2))]
     
     match.drawMatches(img_1,kp1,img_2,kp2,matches, thickness=3, color=(255,0,0))
 
@@ -240,7 +246,7 @@ def testAdjustedConfidence(query_img, template_img, h_angle=0, v_angle=0, distan
     
     #arrange matches by its distance
     matches = sorted(matches, key=lambda m:m.distance)
-#    filtered_matches = [m for m in matches if m.distance<distance_threshold]
+#    filtered_matches = [m for m in matches if m.distance<100]
     filtered_matches = matches[:int(distance_threshold*len(kp2))]
 
     #assume two images have same size
