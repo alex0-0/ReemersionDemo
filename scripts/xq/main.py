@@ -10,6 +10,9 @@ from match import DescriptorType
 DEBUG = True
 TAG = "MAIN\t"
 
+test.testAlgorithmPrecision()
+exit()
+
 #img1 = cv2.imread("000.JPG")
 #img2 = cv2.imread("090.JPG")
 img1 = cv2.imread("-30.JPG")
@@ -17,7 +20,7 @@ img2 = cv2.imread("000.JPG")
 
 #test.testAdjustedConfidence(img1, img2, h_angle=-30, v_angle=0, distance_threshold=50, blocked_threshold=0.5, neighbor_num=10, detect_method=detect.extractORBFeatures, show_image=True, matches_display_num=0)
 
-directory = "lamp"
+directory = "horse"
 #directory = "horse"
 def readImage(f):
     return cv2.imread(directory+"/"+f)
@@ -32,7 +35,12 @@ imgN45 = readImage("-45.JPG")
 img180 = readImage("180.JPG")
 imgFalse = readImage("false.JPG")
 
-#test.testMatch(img000, imgN15, detect.extractORBFeatures)
+#test.testDetect(img000,detect_method=detect.extractSIFTFeatures)
+test.testDetect(img000,detect_method=detect.extractORBFeatures)
+#test.testDetect(img000,detect_method=detect.extractSURFFeatures)
+#test.testMatch(img000, imgN30, detect.extractORBFeatures)
+#test.testAdjustedConfidence(imgFalse, img000, distance_threshold=1.0, neighbor_num=5, h_angle=15, show_image=True, matches_display_num=100, blocked_threshold=0.5, pos_dis=150);
+exit()
 
 #kp1, des1 = detect.extractORBFeatures(img1)
 #kp2, des2 = detect.extractORBFeatures(img2)

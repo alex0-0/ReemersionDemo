@@ -83,10 +83,10 @@ def drawPrecisionChart(ds=['horse','lamp','pops']):
     labels[0] = "False"
 
     #copied from tests
-    #Adjusted confidence test number of matches(ratio=0.50, neighbor_number=5, pos_dis=150) ratio=1.0
-    horse = np.array([0.75,0.59,0.71,0.39,0.51,0.30,0.08,0.10])
-    lamp = np.array([0.91,0.96,1.00,0.96,0.75,0.72,0.10,0.03])
-    pops = np.array([1.00,0.84,1.00,0.12,1.00,0.19,0.02,0.28])
+    #Adjusted confidence test number of matches(ratio=0.50, neighbor_number=5, pos_dis=150) ratio=0.5
+    horse = np.array([0.64,0.44,0.34,0.19,0.22,0.18,0.07,0.04])
+    lamp = np.array([0.80,0.83,0.97,1.00,0.85,0.72,0.17,0.03])
+    pops = np.array([0.86,0.87,1.00,0.41,1.00,0.33,0.12,0.33])
 
     ave_score = (horse + lamp + pops)/len(ds)
     dic = dict(zip(keys, ave_score))
@@ -99,7 +99,7 @@ def drawPrecisionChart(ds=['horse','lamp','pops']):
     fig, ax = plt.subplots(1,1)
     ax.plot(list(range(len(keys))), v1, label='SURF')
     ax.plot(list(range(len(keys))), v2, label='ORB')
-    ax.plot(list(range(len(keys))), ave_score, label='our algorithm')
+    ax.plot(list(range(len(keys))), ave_score, label='FARES')
     ax.set_xticklabels([""]+labels)
     plt.xlabel("images")
     plt.ylabel("confidence")
