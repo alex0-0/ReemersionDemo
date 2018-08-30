@@ -20,23 +20,26 @@ img2 = cv2.imread("000.JPG")
 
 #test.testAdjustedConfidence(img1, img2, h_angle=-30, v_angle=0, distance_threshold=50, blocked_threshold=0.5, neighbor_num=10, detect_method=detect.extractORBFeatures, show_image=True, matches_display_num=0)
 
-directory = "horse"
-#directory = "horse"
+#directory = "Robot"
+directory = "lamp"
 def readImage(f):
     return cv2.imread(directory+"/"+f)
 
 img000 = readImage("000.JPG")
-imgP15 = readImage("015.JPG")
-imgN15 = readImage("-15.JPG")
-imgP30 = readImage("030.JPG")
-imgN30 = readImage("-30.JPG")
-imgP45 = readImage("045.JPG")
-imgN45 = readImage("-45.JPG")
-img180 = readImage("180.JPG")
-imgFalse = readImage("false.JPG")
+#imgP15 = readImage("015.JPG")
+#imgN15 = readImage("-15.JPG")
+#imgP30 = readImage("030.JPG")
+#imgN30 = readImage("-30.JPG")
+#imgP45 = readImage("045.JPG")
+#imgN45 = readImage("-45.JPG")
+#img180 = readImage("180.JPG")
+#imgFalse = readImage("false.JPG")
 
+t = readImage("180.JPG")
+
+print(test.testAdjustedConfidence(t, img000, h_angle=180,show_image=True, pos_dis=150))
 #test.testDetect(img000,detect_method=detect.extractSIFTFeatures)
-test.testDetect(img000,detect_method=detect.extractORBFeatures)
+#test.testDetect(img000,detect_method=detect.extractORBFeatures)
 #test.testDetect(img000,detect_method=detect.extractSURFFeatures)
 #test.testMatch(img000, imgN30, detect.extractORBFeatures)
 #test.testAdjustedConfidence(imgFalse, img000, distance_threshold=1.0, neighbor_num=5, h_angle=15, show_image=True, matches_display_num=100, blocked_threshold=0.5, pos_dis=150);
