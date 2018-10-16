@@ -2,7 +2,8 @@ package com.example.alex.reemersiondemo.reemerge;
 
 import android.os.AsyncTask;
 
-import com.example.alex.reemersiondemo.record.FeatureDetector;
+import com.example.imageprocessinglib.ImageFeature;
+import com.example.imageprocessinglib.ImageProcessor;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
@@ -30,18 +31,22 @@ public class FeatureMatchTask extends AsyncTask {
     protected Object doInBackground(Object[] params) {
         Mat rgba = (Mat)params[0];
         Mat gray = (Mat)params[1];
-        FeatureDetector detector = (FeatureDetector) params[2];
-        FeatureMatcher matcher = (FeatureMatcher) params[3];
-        Mat refDescriptors = (Mat) params[4];
-        MatOfKeyPoint refKeyPoints = (MatOfKeyPoint) params[5];
-        r = (Runnable)params[6];
+//        FeatureDetector detector = (FeatureDetector) params[2];
+//        FeatureMatcher matcher = (FeatureMatcher) params[3];
+        Mat refDescriptors = (Mat) params[2];
+        MatOfKeyPoint refKeyPoints = (MatOfKeyPoint) params[3];
+        r = (Runnable)params[4];
 
-        keypoints = new MatOfKeyPoint();
-        Mat descriptors = new Mat();
+        ImageFeature refFeature = new ImageFeature(refKeyPoints, refDescriptors);
+        ImageFeature queryFeature = ImageProcessor.extractFeatures(gray);
 
-        detector.extractFeatures(gray, keypoints, descriptors);
-        if (descriptors.elemSize() > 0) {
-            matches = matcher.matchFeature(gray, descriptors, refDescriptors, keypoints, refKeyPoints);
+        keypoints = queryFeature.getObjectKeypoints();//new MatOfKeyPoint();
+//        Mat descriptors = imageFeature.getDescriptors();//new Mat();
+
+//        detector.extractFeatures(gray, keypoints, descriptors);
+        if (keypoints.elemSize() > 0) {
+//            matches = matcher.matchFeature(gray, descriptors, refDescriptors, keypoints, refKeyPoints);
+            matches = ImageProcessor.matcheImages(queryFeature, refFeature);
         }
 
         return null;

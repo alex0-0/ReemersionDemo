@@ -9,8 +9,12 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.example.alex.reemersiondemo.R;
-import com.example.alex.reemersiondemo.record.FeatureDetector;
-import com.example.alex.reemersiondemo.record.TensorFlowMultiBoxDetector;
+import com.example.imageprocessinglib.ImageFeatures.FeatureDetector;
+import com.example.imageprocessinglib.ImageProcessor;
+import com.example.imageprocessinglib.ImageProcessorConfig;
+import com.example.imageprocessinglib.Recognition;
+//import com.example.imageprocessinglib.ImageFeature.FeatureDetector;
+//import com.example.alex.reemersiondemo.record.TensorFlowMultiBoxDetector;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -19,18 +23,19 @@ import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class PicMatching extends Activity {
     private static String TAG = "PicMatching";
     private static final String                     MODEL_PATH = "file:///android_asset/ssd_mobilenet_v1_android_export.pb";
     private ArrayList<Mat> imageList;
     private GridView gridView;
-    private TensorFlowMultiBoxDetector tfDetector;
+//    private TensorFlowMultiBoxDetector tfDetector;
 
+    private ImageProcessor imageProcessor;
     //necessary operation after application load openCV library
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -55,9 +60,9 @@ public class PicMatching extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pic_matching);
         gridView = findViewById(R.id.pic_matching);
-        TensorFlowInferenceInterface tensorflow = new TensorFlowInferenceInterface(getAssets(), MODEL_PATH);
-        tfDetector = TensorFlowMultiBoxDetector.getInstance();
-        tfDetector.setTensorflow(tensorflow);
+//        TensorFlowInferenceInterface tensorflow = new TensorFlowInferenceInterface(getAssets(), MODEL_PATH);
+//        tfDetector = TensorFlowMultiBoxDetector.getInstance();
+//        tfDetector.setTensorflow(tensorflow);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView parent, View v, int position, long id) {
                 if (position == 0 || !v.isShown())
@@ -101,7 +106,7 @@ public class PicMatching extends Activity {
                 imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.g, Imgcodecs.CV_LOAD_IMAGE_COLOR));
                 imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.h, Imgcodecs.CV_LOAD_IMAGE_COLOR));
                 imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.i, Imgcodecs.CV_LOAD_IMAGE_COLOR));
-                imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.j, Imgcodecs.CV_LOAD_IMAGE_COLOR));
+//                imageList.add(Utils.loadResource(getApplicationContext(), R.drawable.j, Imgcodecs.CV_LOAD_IMAGE_COLOR));
                 GridViewAdapter adapter = new GridViewAdapter(getApplicationContext(), imageList);
                 gridView.setAdapter(adapter);
             } catch (IOException e) {
@@ -116,7 +121,19 @@ public class PicMatching extends Activity {
      * @return objectImage. If unrecognizable, return original image.
      */
     private Mat extractTemplate(Mat image) {
-        ArrayList<Rect> boundRect = tfDetector.recognizeImage(image);
+        if (imageProcessor == null) {
+            imageProcessor = new ImageProcessor();
+            ImageProcessorConfig config = new ImageProcessorConfig(image.width(), image.height(), this, 0);
+            imageProcessor.initObjectDetector(config);
+        }
+        List<Recognition> recognitions = imageProcessor.recognizeImage(image);
+        ArrayList<Rect> boundRect = new ArrayList<>();
+        for (Recognition r : recognitions) {
+            android.graphics.Rect rect = new android.graphics.Rect();
+            r.getOriginalLoc().round(rect);
+            Rect rec = new Rect(rect.left, rect.top, rect.width(), rect.height());
+            boundRect.add(rec);
+        }
 
         //assume image only contains template
         if (boundRect.size() > 0) {

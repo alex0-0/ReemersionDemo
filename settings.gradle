@@ -1,2 +1,2 @@
-include ':app', ':tensorflow'
-include ':openCVLibrary331dev'
+include ':app', ':openCVLibrary331dev', ':tensorflow', 'ImageProcessingLib'
+//include ':openCVLibrary331dev'

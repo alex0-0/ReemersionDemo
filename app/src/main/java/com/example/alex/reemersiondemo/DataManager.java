@@ -1,9 +1,10 @@
 package com.example.alex.reemersiondemo;
 
-import com.example.alex.reemersiondemo.record.Recognition;
+import com.example.imageprocessinglib.Recognition;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.imgcodecs.Imgcodecs;
 
 import java.util.ArrayList;
 
@@ -59,6 +60,14 @@ public class DataManager {
 
     public void storeTargetRecognitions(ArrayList<Recognition> r) {
         this.targetRecognitions = new ArrayList(r);
+    }
+
+    public void saveImageToMem(String fileName, Mat img) {
+        Imgcodecs.imwrite(fileName, img);
+    }
+
+    public void saveToFile(Mat img) {
+        ;
     }
 
     public Mat getRefTemplateImg() {

@@ -8,7 +8,7 @@ import android.widget.Toast;
 
 import com.example.alex.reemersiondemo.DataManager;
 import com.example.alex.reemersiondemo.R;
-import com.example.alex.reemersiondemo.record.FeatureDetector;
+import com.example.imageprocessinglib.ImageProcessor;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -33,8 +33,8 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
     private CameraBridgeViewBase                    mOpenCvCameraView;
     private Mat                                     mRgba;
     private Mat                                     mGray;
-    private FeatureDetector detector;
-    private FeatureMatcher matcher;
+//    private FeatureDetector detector;
+//    private FeatureMatcher matcher;
     private Mat refDescriptors;
     private MatOfKeyPoint refKeyPoints;
     private Mat refGray;
@@ -75,8 +75,9 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
 
     private void initialize() throws IOException {
         mOpenCvCameraView.enableView();
-        detector = FeatureDetector.getInstance();
-        matcher = FeatureMatcher.getInstance();
+//        detector = FeatureDetector.getInstance();
+//        matcher = FeatureMatcher.getInstance();
+        ImageProcessor imageProcessor = new ImageProcessor();
         refDescriptors = DataManager.getInstance().getRefDescriptors();
         refKeyPoints = DataManager.getInstance().getRefKeyPoints();
         refGray = DataManager.getInstance().getRefTemplateImg();
@@ -160,7 +161,7 @@ public class ReemergeController extends Activity implements CameraBridgeViewBase
 
             //run relative computation in background thread
             fmTask = new FeatureMatchTask();
-            fmTask.execute(mRgba, mGray, detector, matcher, refD, refK, new Runnable() {
+            fmTask.execute(mRgba, mGray, refD, refK, new Runnable() {
                 @Override
                 public void run() {
                     //get result

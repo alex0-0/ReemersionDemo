@@ -1,5 +1,6 @@
-package com.example.alex.reemersiondemo.record;
+package com.example.imageprocessinglib;
 
+import android.graphics.Bitmap;
 import android.graphics.RectF;
 
 public class Recognition {
@@ -18,6 +19,16 @@ public class Recognition {
      * A sortable score for how good the recognition is relative to others. Higher should be better.
      */
     private final Float confidence;
+
+    /**
+     * Object image cropped from original image
+     */
+    private Bitmap objectImage;
+
+    /**
+     * Object location in original image
+     */
+    private RectF originalLoc;
 
     /** Optional location within the source image for the location of the recognized object. */
     private RectF location;
@@ -48,6 +59,22 @@ public class Recognition {
 
     public void setLocation(RectF location) {
         this.location = location;
+    }
+
+    public void setObjectImage(Bitmap objectImage) {
+        this.objectImage = objectImage;
+    }
+
+    public Bitmap getObjectImage() {
+        return objectImage;
+    }
+
+    public RectF getOriginalLoc() {
+        return originalLoc;
+    }
+
+    public void setOriginalLoc(RectF originalLoc) {
+        this.originalLoc = originalLoc;
     }
 
     @Override

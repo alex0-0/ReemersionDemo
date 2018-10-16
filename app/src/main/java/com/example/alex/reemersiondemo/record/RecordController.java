@@ -11,6 +11,9 @@ import android.widget.Toast;
 import com.example.alex.reemersiondemo.DataManager;
 import com.example.alex.reemersiondemo.OrientationManager;
 import com.example.alex.reemersiondemo.R;
+import com.example.imageprocessinglib.ImageProcessor;
+import com.example.imageprocessinglib.ImageProcessorConfig;
+import com.example.imageprocessinglib.Recognition;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -22,7 +25,6 @@ import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.features2d.Features2d;
 import org.opencv.imgproc.Imgproc;
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 
@@ -39,8 +41,8 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private static final String                     MODEL_PATH = "file:///android_asset/ssd_mobilenet_v1_android_export.pb";
     private static final String                     YOLO_MODEL_FILE = "file:///android_asset/graph-tiny-yolo-voc.pb";
 
-    private TensorFlowMultiBoxDetector              tfDetector;
-    private TensorFlowYoloDetector                  yoloDetector;
+//    private TensorFlowMultiBoxDetector tfDetector;
+//    private TensorFlowYoloDetector yoloDetector;
     private CameraBridgeViewBase                    mOpenCvCameraView;
     private Mat                                     mRgba;
     private Mat                                     mGray;
@@ -51,7 +53,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private MatOfKeyPoint                           ROIKeypoints;
     private Mat                                     ROIDescriptors;
     private Mat                                     tmpROIGray;
-    private FeatureDetector                         detector;
+//    private FeatureDetector detector;
     private DataManager                             dataManager;
     private OrientationManager                      orientationManager;
     private float                                   initialAzimuth = 0;
@@ -60,6 +62,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private boolean                                 refRecorded = false;        //whether reference object recorded
     private volatile boolean                        onProcessing = false;
     private ArrayList<Recognition>                  recognitions;
+    private ImageProcessor                          imageProcessor;
 
     //AsyncTask, run computation of feature detection in background thread
     private FeatureDetectTask fpTask;
@@ -91,7 +94,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
 
     //initialize necessary variables after beginning taking video
     private void initialize() throws IOException {
-        detector = FeatureDetector.getInstance();
+//        detector = FeatureDetector.getInstance();
         objectKeypoints = new MatOfKeyPoint();
         featureList = new ArrayList<>();
         ROIKeypoints = new MatOfKeyPoint();
@@ -99,16 +102,15 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
         tmpROIGray = new Mat();
         dataManager = DataManager.getInstance();
         boundRects = new ArrayList<>();
-
         //set tensorflow model, though the detector is not used here, but since it's static instance, the configuration will work
         TensorFlowInferenceInterface tensorflow = new TensorFlowInferenceInterface(getAssets(), MODEL_PATH);
-        tfDetector = TensorFlowMultiBoxDetector.getInstance();
-        tfDetector.setTensorflow(tensorflow);
+//        tfDetector = TensorFlowMultiBoxDetector.getInstance();
+//        tfDetector.setTensorflow(tensorflow);
 
         //set YOLO model, the YOLODetector may be called in future background thread
-        TensorFlowInferenceInterface t = new TensorFlowInferenceInterface(getAssets(), YOLO_MODEL_FILE);
-        yoloDetector = TensorFlowYoloDetector.getInstance();
-        yoloDetector.setTensorflow(t);
+//        TensorFlowInferenceInterface t = new TensorFlowInferenceInterface(getAssets(), YOLO_MODEL_FILE);
+//        yoloDetector = TensorFlowYoloDetector.getInstance();
+//        yoloDetector.setTensorflow(t);
 
         orientationManager = new OrientationManager(this);
         orientationManager.startListening(this);
@@ -160,7 +162,6 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
 
     public void onDestroy() {
         super.onDestroy();
-        //cancel task which otherwise may crush application due to accessing released resource in background thread
         fpTask.cancel(true);
         orientationManager.stopListening();
         mOpenCvCameraView.disableView();
@@ -188,15 +189,21 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
             mRgba = inputFrame.rgba().clone();      //to remove drawn feature point on the picture.
             mGray = inputFrame.gray();
 
+            if (imageProcessor == null) {
+                imageProcessor = new ImageProcessor();
+                ImageProcessorConfig config = new ImageProcessorConfig(mRgba.width(), mRgba.height(), this, 0);
+                imageProcessor.initObjectDetector(config);
+            }
+
             fpTask = new FeatureDetectTask();
             //Callback after computation ends and pass necessary parameters
-            fpTask.execute(mRgba, mGray, detector, new Runnable() {
+            fpTask.execute(mRgba, mGray, imageProcessor, new Runnable() {
                 @Override
                 public void run() {
                     boundRects = fpTask.getBoundRects();
-                    objectKeypoints = fpTask.getObjectKeypoints();
-                    recognitions = fpTask.getRecognitions();
-                    constructFeatureMap();
+//                    objectKeypoints = fpTask.getObjectKeypoints();
+//                    recognitions = fpTask.getRecognitions();
+//                    constructFeatureMap();
                     //computation ends
                     onProcessing = false;
                 }
@@ -218,11 +225,11 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                 Imgproc.rectangle(frame, boundRects.get(i).tl(), boundRects.get(i).br(), color, 3);
             }
         }
-        Mat t = new Mat();
-        Imgproc.cvtColor(frame, t, Imgproc.COLOR_BGRA2BGR);
-        Features2d.drawKeypoints(t, objectKeypoints, t, Scalar.all(-1), Features2d.DRAW_RICH_KEYPOINTS);
-        Imgproc.cvtColor(t, frame, Imgproc.COLOR_BGR2BGRA);
-        t.release();
+//        Mat t = new Mat();
+//        Imgproc.cvtColor(frame, t, Imgproc.COLOR_BGRA2BGR);
+//        Features2d.drawKeypoints(t, objectKeypoints, t, Scalar.all(-1), Features2d.DRAW_RICH_KEYPOINTS);
+//        Imgproc.cvtColor(t, frame, Imgproc.COLOR_BGR2BGRA);
+//        t.release();
     }
 
     //store feature points laying inside every rectangle
@@ -277,7 +284,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
                     //crop the region of interest
                     ROI = new Mat(mRgba, boundRects.get(i).clone());
                     Imgproc.cvtColor(ROI, tmpROIGray, Imgproc.COLOR_BGRA2GRAY);
-                    detector.extractFeatures(tmpROIGray, ROIKeypoints, ROIDescriptors);
+//                    detector.extractFeatures(tmpROIGray, ROIKeypoints, ROIDescriptors);
                     //extract distinct features
 //                    detector.extractDistinctFeatures(tmpROIGray, ROIKeypoints, ROIDescriptors);
 

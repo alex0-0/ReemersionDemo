@@ -27,6 +27,9 @@ android {
             path "CMakeLists.txt"
         }
     }
+    lintOptions{
+        abortOnError false
+    }
 }
 
 dependencies {
@@ -37,9 +40,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    compile project(':openCVLibrary331dev')
-    //    compile 'org.tensorflow:tensorflow-android:+'
-    //    compile files('libs/libandroid_tensorflow_inference_java.jar')
-    //    compile(name:'tensorflow.aar', ext:'aar')
-    implementation project(':tensorflow')
+    implementation project(':ImageProcessingLib')
 }
