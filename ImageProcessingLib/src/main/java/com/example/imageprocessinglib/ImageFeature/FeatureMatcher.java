@@ -1,4 +1,4 @@
-package com.example.imageprocessinglib.ImageFeatures;
+package com.example.imageprocessinglib.ImageFeature;
 
 import android.util.Log;
 

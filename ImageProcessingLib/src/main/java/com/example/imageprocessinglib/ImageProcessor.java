@@ -6,8 +6,8 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 
-import com.example.imageprocessinglib.ImageFeatures.FeatureDetector;
-import com.example.imageprocessinglib.ImageFeatures.FeatureMatcher;
+import com.example.imageprocessinglib.ImageFeature.FeatureDetector;
+import com.example.imageprocessinglib.ImageFeature.FeatureMatcher;
 import com.example.imageprocessinglib.ImageProcessorConfig.*;
 import com.example.imageprocessinglib.tensorflow.Classifier;
 import com.example.imageprocessinglib.tensorflow.TensorFlowMultiBoxDetector;
@@ -160,24 +160,24 @@ public class ImageProcessor {
     /*
     Extract image feature points
      */
-    static public ImageFeature extractDistinctFeatures(Mat img) {
+    static public ImageFeatureObject extractDistinctFeatures(Mat img) {
         MatOfKeyPoint kps = new MatOfKeyPoint();
         Mat des = new Mat();
         FeatureDetector.getInstance().extractDistinctFeatures(img, kps, des);
-        return new ImageFeature(kps, des);
+        return new ImageFeatureObject(kps, des);
     }
 
     /*
     Extract image feature points
      */
-    static public ImageFeature extractFeatures(Mat img) {
+    static public ImageFeatureObject extractFeatures(Mat img) {
         MatOfKeyPoint kps = new MatOfKeyPoint();
         Mat des = new Mat();
         FeatureDetector.getInstance().extractFeatures(img, kps, des);
-        return new ImageFeature(kps, des);
+        return new ImageFeatureObject(kps, des);
     }
 
-    static public ImageFeature extractFeatures(Bitmap bitmap) {
+    static public ImageFeatureObject extractFeatures(Bitmap bitmap) {
         Mat img = new Mat();
         Utils.bitmapToMat(bitmap, img);
         return extractFeatures(img);
@@ -186,20 +186,20 @@ public class ImageProcessor {
     /*
     Match two images
      */
-    static public MatOfDMatch matcheImages(ImageFeature qIF, ImageFeature tIF) {
+    static public MatOfDMatch matcheImages(ImageFeatureObject qIF, ImageFeatureObject tIF) {
         return FeatureMatcher.getInstance().matchFeature(qIF.getDescriptors(), tIF.getDescriptors(), qIF.getObjectKeypoints(), tIF.getObjectKeypoints());
     }
 
     static public MatOfDMatch matcheImages(Mat queryImg, Mat temImg) {
         MatOfKeyPoint kps = new MatOfKeyPoint();
-        ImageFeature qIF = extractFeatures(queryImg);
-        ImageFeature tIF = extractFeatures(temImg);
+        ImageFeatureObject qIF = extractFeatures(queryImg);
+        ImageFeatureObject tIF = extractFeatures(temImg);
         return matcheImages(qIF, tIF);
     }
 
     static public MatOfDMatch matcheImages(Bitmap queryImg, Bitmap temImg) {
-        ImageFeature qIF = extractFeatures(queryImg);
-        ImageFeature tIF = extractFeatures(temImg);
+        ImageFeatureObject qIF = extractFeatures(queryImg);
+        ImageFeatureObject tIF = extractFeatures(temImg);
         return matcheImages(qIF, tIF);
     }
 }

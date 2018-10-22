@@ -1,4 +1,4 @@
-package com.example.imageprocessinglib.ImageFeatures;
+package com.example.imageprocessinglib.ImageFeature;
 
 import org.opencv.core.DMatch;
 import org.opencv.core.KeyPoint;

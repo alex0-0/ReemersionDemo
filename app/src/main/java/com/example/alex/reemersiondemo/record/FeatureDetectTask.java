@@ -2,7 +2,7 @@ package com.example.alex.reemersiondemo.record;
 
 import android.os.AsyncTask;
 
-//import com.example.imageprocessinglib.ImageFeature.FeatureDetector;
+//import com.example.imageprocessinglib.ImageFeatureObject.FeatureDetector;
 import com.example.imageprocessinglib.ImageProcessor;
 import com.example.imageprocessinglib.Recognition;
 
@@ -49,7 +49,7 @@ public class FeatureDetectTask extends AsyncTask {
 //        ArrayList<Rect> boundRects = tfDetector.recognizeImage(rgba);
 //        recognitions = tfDetector.getRecognitions();
         List<Recognition> recognitions = imageProcessor.recognizeImage(rgba);
-//        ImageFeature imageFeature = imageProcessor.extractFeatures(gray);
+//        ImageFeatureObject imageFeature = imageProcessor.extractFeatures(gray);
 //        objectKeypoints = imageFeature.getObjectKeypoints();
 //        descriptors = imageFeature.getDescriptors();
 //        ArrayList<Rect> boundRects = yoloDetector.recognizeImage(rgba);

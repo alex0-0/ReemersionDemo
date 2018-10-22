@@ -2,7 +2,7 @@ package com.example.alex.reemersiondemo.reemerge;
 
 import android.os.AsyncTask;
 
-import com.example.imageprocessinglib.ImageFeature;
+import com.example.imageprocessinglib.ImageFeatureObject;
 import com.example.imageprocessinglib.ImageProcessor;
 
 import org.opencv.core.Mat;
@@ -37,8 +37,8 @@ public class FeatureMatchTask extends AsyncTask {
         MatOfKeyPoint refKeyPoints = (MatOfKeyPoint) params[3];
         r = (Runnable)params[4];
 
-        ImageFeature refFeature = new ImageFeature(refKeyPoints, refDescriptors);
-        ImageFeature queryFeature = ImageProcessor.extractFeatures(gray);
+        ImageFeatureObject refFeature = new ImageFeatureObject(refKeyPoints, refDescriptors);
+        ImageFeatureObject queryFeature = ImageProcessor.extractFeatures(gray);
 
         keypoints = queryFeature.getObjectKeypoints();//new MatOfKeyPoint();
 //        Mat descriptors = imageFeature.getDescriptors();//new Mat();

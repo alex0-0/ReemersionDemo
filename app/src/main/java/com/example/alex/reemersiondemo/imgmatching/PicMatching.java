@@ -9,7 +9,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.example.alex.reemersiondemo.R;
-import com.example.imageprocessinglib.ImageFeatures.FeatureDetector;
+import com.example.imageprocessinglib.ImageFeature.FeatureDetector;
 import com.example.imageprocessinglib.ImageProcessor;
 import com.example.imageprocessinglib.ImageProcessorConfig;
 import com.example.imageprocessinglib.Recognition;

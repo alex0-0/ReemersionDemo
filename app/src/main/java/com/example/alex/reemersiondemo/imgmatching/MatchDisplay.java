@@ -8,9 +8,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.alex.reemersiondemo.R;
-import com.example.imageprocessinglib.ImageFeature;
-//import com.example.imageprocessinglib.ImageFeature.FeatureDetector;
-//import com.example.imageprocessinglib.ImageFeature.FeatureMatcher;
+import com.example.imageprocessinglib.ImageFeatureObject;
+//import com.example.imageprocessinglib.ImageFeatureObject.FeatureDetector;
+//import com.example.imageprocessinglib.ImageFeatureObject.FeatureMatcher;
 import com.example.imageprocessinglib.ImageProcessor;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -77,7 +77,7 @@ public class MatchDisplay extends Activity {
         Mat gray = new Mat();
         Imgproc.cvtColor(templateImg, gray, Imgproc.COLOR_BGRA2GRAY);
 //        FeatureDetector.getInstance().extractDistinctFeatures(gray, tKPs, tDescriptors);
-        ImageFeature imageFeature = ImageProcessor.extractDistinctFeatures(gray);
+        ImageFeatureObject imageFeatureObject = ImageProcessor.extractDistinctFeatures(gray);
         gray.release();
         extractFeatures(queryImg, qKPs, qDescriptors);
 
