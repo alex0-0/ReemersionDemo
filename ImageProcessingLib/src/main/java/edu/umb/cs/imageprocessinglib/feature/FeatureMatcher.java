@@ -1,6 +1,4 @@
-package com.example.alex.reemersiondemo.reemerge;
-
-import android.util.Log;
+package edu.umb.cs.imageprocessinglib.feature;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.DMatch;
@@ -10,54 +8,111 @@ import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.features2d.BFMatcher;
 import org.opencv.features2d.DescriptorMatcher;
-import org.opencv.features2d.FlannBasedMatcher;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by alex on 1/28/18.
  */
 
 public class FeatureMatcher {
-//    static private final double kConfidence = 0.99;
+    public enum DescriptorType {
+        ORB,
+        SURF
+    }
+    //    static private final double kConfidence = 0.99;
 //    static private final double kDistance = 3.0;
     static private final double kRatio = 0.7;
     static double kTolerableDifference = 0.1;  //an custom number to determine whether two matches have spacial relation
     static String TAG = "Feature Matcher";
 
-    private DescriptorMatcher BFMatcher;
+    private DescriptorMatcher matcher;
+    private DescriptorType descriptorType;
 
-    private static final FeatureMatcher ourInstance = new FeatureMatcher();
+    private static final FeatureMatcher ourInstance = new FeatureMatcher(DescriptorType.ORB);
 
     public static FeatureMatcher getInstance() {
         return ourInstance;
     }
 
-    private FeatureMatcher() {
-        BFMatcher = DescriptorMatcher.create("BruteForce");
+    public FeatureMatcher(DescriptorType type) {
+        descriptorType = type;
+        matcher = createMatcher(type);
+    }
+
+    //Default matcher is ORB
+    private BFMatcher createMatcher(DescriptorType type) {
+        BFMatcher m;
+        switch (type) {
+            case SURF:
+                m = BFMatcher.create(DescriptorMatcher.BRUTEFORCE_SL2, false);
+                break;
+            case ORB:
+            default:
+                m = BFMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING, false);
+                break;
+        }
+        return m;
+    }
+
+    public MatOfDMatch BFMatchFeature(Mat queryDescriptor, Mat templateDescriptor) {
+        return BFMatchFeature(queryDescriptor, templateDescriptor, descriptorType);
     }
 
     /**
      *
-     * @param input                 image
      * @param queryDescriptor
      * @param templateDescriptor
-     * @param keypoints1            query key points
-     * @param keypoints2            template key points
+     * @param dType                 Descriptor type
      * @return                      matched key points
      */
-    public MatOfDMatch matchFeature(Mat input, Mat queryDescriptor, Mat templateDescriptor, MatOfKeyPoint keypoints1, MatOfKeyPoint keypoints2) {
+    public MatOfDMatch BFMatchFeature(Mat queryDescriptor, Mat templateDescriptor, DescriptorType dType) {
+        DescriptorMatcher m = matcher;
+        if (dType != descriptorType) {
+            m = createMatcher(dType);
+        }
+        MatOfDMatch matches = new MatOfDMatch();
+        m.match(queryDescriptor, templateDescriptor, matches);
+        return matches;
+    }
+
+    public MatOfDMatch matchFeature(Mat queryDescriptor, Mat templateDescriptor, MatOfKeyPoint queryKeyPoints, MatOfKeyPoint templateKeyPoints) {
+        return matchFeature(queryDescriptor, templateDescriptor, queryKeyPoints, templateKeyPoints, descriptorType);
+    }
+    /**
+     *
+     * @param queryDescriptor
+     * @param templateDescriptor
+     * @param queryKeyPoints            query key points
+     * @param templateKeyPoints            template key points
+     * @return                      matched key points
+     */
+    public MatOfDMatch matchFeature(Mat queryDescriptor,
+                                    Mat templateDescriptor,
+                                    MatOfKeyPoint queryKeyPoints,
+                                    MatOfKeyPoint templateKeyPoints,
+                                    DescriptorType dType) {
+//        MatOfDMatch matches = new MatOfDMatch();
+//        matcher.match(queryDescriptor, templateDescriptor, matches);       //k(final parameter) set to 1 will do crosscheck
+//        return matches;
+        DescriptorMatcher m = matcher;
+
+        if (dType != descriptorType) {
+            m = createMatcher(dType);
+        }
+
         ArrayList<MatOfDMatch> matches1 = new ArrayList<>();
         ArrayList<MatOfDMatch>  matches2 = new ArrayList<>();
 
-        BFMatcher.knnMatch(queryDescriptor, templateDescriptor, matches1, 2);       //k(final parameter) set to 1 will do crosscheck
-        BFMatcher.knnMatch(templateDescriptor, queryDescriptor, matches2, 2);
+        m.knnMatch(queryDescriptor, templateDescriptor, matches1, 2);       //k(final parameter) set to 1 will do crosscheck
+        m.knnMatch(templateDescriptor, queryDescriptor, matches2, 2);
 
         ratioTest(matches1);
         ratioTest(matches2);
@@ -74,7 +129,7 @@ public class FeatureMatcher {
         }
 
         if (symMatches.total() > 20) {
-            ransacTest(symMatches, keypoints1, keypoints2, ransacMatches);
+            ransacTest(symMatches, queryKeyPoints, templateKeyPoints, ransacMatches);
             //release resources
             symMatches.release();
             return ransacMatches;
@@ -82,9 +137,9 @@ public class FeatureMatcher {
         return symMatches;
     }
 
-//if the two best matches are relatively close in distance,
+    //if the two best matches are relatively close in distance,
 //then there exists a possibility that we make an error if we select one or the other.
-private int ratioTest(ArrayList<MatOfDMatch> matches) {
+    private int ratioTest(ArrayList<MatOfDMatch> matches) {
         ArrayList<MatOfDMatch> updatedMatches = new ArrayList<>();
         int removed=0;
         // for all matches
@@ -142,9 +197,9 @@ private int ratioTest(ArrayList<MatOfDMatch> matches) {
     //refer to: https://en.wikipedia.org/wiki/Random_sample_consensus
 // Identify good matches using RANSAC
     private void ransacTest(MatOfDMatch matches,
-                           MatOfKeyPoint keypoints1,
-                           MatOfKeyPoint keypoints2,
-                           MatOfDMatch outMatches)
+                            MatOfKeyPoint keypoints1,
+                            MatOfKeyPoint keypoints2,
+                            MatOfDMatch outMatches)
     {
         // get keypoint coordinates of good matches to find homography and remove outliers using ransac
         List<Point> pts1 = new ArrayList<>();
@@ -251,11 +306,6 @@ private int ratioTest(ArrayList<MatOfDMatch> matches) {
 
             if (Math.abs(ratioInQueryImage - ratioInTemplateImage) > kTolerableDifference)
                 return false;
-
-            Log.d(TAG, "Matched Points Info:" +
-                    "query points: " + qPoint.toString() + "\t" + mQPoint.toString()
-                    + "template points: " + tPoint.toString() + "\t" + mTPoint.toString()
-                    + "query ratio:" + ratioInQueryImage + "\t" + "template ratio:" + ratioInTemplateImage);
         }
         //if the match looks good to existed points in cluster
         return true;

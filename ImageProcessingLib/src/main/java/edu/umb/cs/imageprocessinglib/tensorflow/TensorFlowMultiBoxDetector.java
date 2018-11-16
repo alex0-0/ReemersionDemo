@@ -13,14 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-package com.example.imageprocessinglib.tensorflow;
+package edu.umb.cs.imageprocessinglib.tensorflow;
 
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Trace;
 
-import com.example.imageprocessinglib.Recognition;
 //import com.google.ar.sceneform.samples.hellosceneform.env.Logger;
 
 import org.tensorflow.Graph;
@@ -37,6 +36,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.StringTokenizer;
+
+import edu.umb.cs.imageprocessinglib.model.BoxPosition;
+import edu.umb.cs.imageprocessinglib.model.Recognition;
 
 /**
  * A detector for general purpose object detection as described in Scalable Object Detection using
@@ -74,11 +76,11 @@ public class TensorFlowMultiBoxDetector implements Classifier {
    * @param assetManager The asset manager to be used to load assets.
    * @param modelFilename The filepath of the model GraphDef protocol buffer.
    * @param locationFilename The filepath of label file for classes.
-   * @param inputSize The input size. A square image of inputSize x inputSize is assumed.
+//   * @param inputSize The input size. A square image of inputSize x inputSize is assumed.
    * @param imageMean The assumed mean of the image values.
    * @param imageStd The assumed std of the image values.
    * @param inputName The label of the image input node.
-   * @param outputName The label of the output node.
+//   * @param outputName The label of the output node.
    */
   public static Classifier create(
       final AssetManager assetManager,
@@ -255,13 +257,19 @@ public class TensorFlowMultiBoxDetector implements Classifier {
 
     // Scale them back to the input size.
     for (int i = 0; i < outputScores.length; ++i) {
-      final RectF detection =
-          new RectF(
-              outputLocations[4 * i] * inputSize,
-              outputLocations[4 * i + 1] * inputSize,
-              outputLocations[4 * i + 2] * inputSize,
-              outputLocations[4 * i + 3] * inputSize);
-      pq.add(new Recognition("" + i, null, outputScores[i], detection));
+//      final RectF detection =
+//          new RectF(
+//              outputLocations[4 * i] * inputSize,
+//              outputLocations[4 * i + 1] * inputSize,
+//              outputLocations[4 * i + 2] * inputSize,
+//              outputLocations[4 * i + 3] * inputSize);
+      final BoxPosition detection =
+              new BoxPosition(
+                      outputLocations[4 * i] * inputSize,
+                      outputLocations[4 * i + 1] * inputSize,
+                      (outputLocations[4 * i + 2] - outputLocations[4 * i]) * inputSize,
+                      (outputLocations[4 * i + 3] - outputLocations[4 * i + 1]) * inputSize);
+      pq.add(new Recognition(i, null, outputScores[i], detection, inputSize));
     }
 
     final ArrayList<Recognition> recognitions = new ArrayList<Recognition>();

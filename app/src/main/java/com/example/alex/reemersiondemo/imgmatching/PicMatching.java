@@ -2,6 +2,8 @@ package com.example.alex.reemersiondemo.imgmatching;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,11 +11,13 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.example.alex.reemersiondemo.R;
-import com.example.imageprocessinglib.ImageFeature.FeatureDetector;
-import com.example.imageprocessinglib.ImageProcessor;
-import com.example.imageprocessinglib.ImageProcessorConfig;
-import com.example.imageprocessinglib.Recognition;
-//import com.example.imageprocessinglib.ImageFeature.FeatureDetector;
+
+import edu.umb.cs.imageprocessinglib.ObjectDetector;
+import edu.umb.cs.imageprocessinglib.feature.FeatureDetector;
+import edu.umb.cs.imageprocessinglib.ImageProcessor;
+import edu.umb.cs.imageprocessinglib.model.BoxPosition;
+import edu.umb.cs.imageprocessinglib.model.Recognition;
+//import edu.umb.cs.imageprocessinglib.feature.FeatureDetector;
 //import com.example.alex.reemersiondemo.record.TensorFlowMultiBoxDetector;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -35,7 +39,7 @@ public class PicMatching extends Activity {
     private GridView gridView;
 //    private TensorFlowMultiBoxDetector tfDetector;
 
-    private ImageProcessor imageProcessor;
+    private ObjectDetector detector;
     //necessary operation after application load openCV library
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -92,7 +96,9 @@ public class PicMatching extends Activity {
 
             try {
                 Mat template = Utils.loadResource(getApplicationContext(), R.drawable.template, Imgcodecs.CV_LOAD_IMAGE_COLOR);
-                template = extractTemplate(template);
+                Mat test = Utils.loadResource(getApplicationContext(), R.drawable.test_10, Imgcodecs.CV_LOAD_IMAGE_COLOR);
+                imageList.add(test);
+                template = extractTemplate(test);
                 imageList.add(template);
                 //uncomment next line to see more clearly how distortion works
 //                imageList.addAll(FeatureDetector.getInstance().distortImage(Utils.loadResource(getApplicationContext(), R.drawable.j, Imgcodecs.CV_LOAD_IMAGE_COLOR)));
@@ -121,23 +127,32 @@ public class PicMatching extends Activity {
      * @return objectImage. If unrecognizable, return original image.
      */
     private Mat extractTemplate(Mat image) {
-        if (imageProcessor == null) {
-            imageProcessor = new ImageProcessor();
-            ImageProcessorConfig config = new ImageProcessorConfig(image.width(), image.height(), this, 0);
-            imageProcessor.initObjectDetector(config);
+        if (detector == null) {
+            detector = new ObjectDetector();
+            detector.init(this);
         }
-        List<Recognition> recognitions = imageProcessor.recognizeImage(image);
+        List<Recognition> recognitions = detector.recognizeImage(image);
         ArrayList<Rect> boundRect = new ArrayList<>();
         for (Recognition r : recognitions) {
-            android.graphics.Rect rect = new android.graphics.Rect();
-            r.getOriginalLoc().round(rect);
-            Rect rec = new Rect(rect.left, rect.top, rect.width(), rect.height());
+            BoxPosition rect = r.getScaledLocation(image.cols()/(float)r.getModelSize(), image.rows()/(float)r.getModelSize());
+            Rect rec = new Rect(rect.getLeftInt(), rect.getTopInt(), rect.getWidthInt(), rect.getHeightInt());
             boundRect.add(rec);
         }
 
         //assume image only contains template
         if (boundRect.size() > 0) {
             return new Mat(image, boundRect.get(0));
+//            BoxPosition bp = recognitions.get(0).getLocation();
+//            Matrix matrix = new Matrix();
+//            Matrix invertMatrix = new Matrix();
+//            matrix.postScale(detector.cropSize/(float)image.cols(), detector.cropSize/(float)image.rows());
+//            boolean a = matrix.invert(invertMatrix);
+////            matrix.postScale(image.cols()/detector.cropSize, image.rows()/detector.cropSize);
+//            RectF rectF = new RectF(bp.getLeft(), bp.getTop(), bp.getRight(), bp.getBottom());
+//            invertMatrix.mapRect(rectF);
+////            RectF rectF = recognitions.get(0).rectF;
+//            Rect rect = new Rect((int)rectF.left, (int)rectF.top, (int)rectF.width(), (int)rectF.height());
+//            return new Mat(image, rect);
         }
         return image;
     }

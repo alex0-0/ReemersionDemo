@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-package com.example.imageprocessinglib.tensorflow;
+package edu.umb.cs.imageprocessinglib.tensorflow;
 
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -21,7 +21,6 @@ import android.graphics.RectF;
 import android.os.Trace;
 import android.util.Log;
 
-import com.example.imageprocessinglib.Recognition;
 
 import org.tensorflow.Graph;
 import org.tensorflow.Operation;
@@ -36,6 +35,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Vector;
+
+import edu.umb.cs.imageprocessinglib.model.BoxPosition;
+import edu.umb.cs.imageprocessinglib.model.Recognition;
 
 /**
  * Wrapper for frozen detection models trained using the Tensorflow Object Detection API:
@@ -191,14 +193,14 @@ public class TensorFlowObjectDetectionAPIModel implements Classifier {
 
     // Scale them back to the input size.
     for (int i = 0; i < outputScores.length; ++i) {
-      final RectF detection =
-          new RectF(
-              outputLocations[4 * i + 1] * inputSize,
-              outputLocations[4 * i] * inputSize,
-              outputLocations[4 * i + 3] * inputSize,
-              outputLocations[4 * i + 2] * inputSize);
+      final BoxPosition detection =
+              new BoxPosition(
+                      outputLocations[4 * i + 1] * inputSize,
+                      outputLocations[4 * i] * inputSize,
+                      (outputLocations[4 * i + 3] - outputLocations[4 * i + 1]) * inputSize,
+                      (outputLocations[4 * i + 2] - outputLocations[4 * i]) * inputSize);
       pq.add(
-          new Recognition("" + i, labels.get((int) outputClasses[i]), outputScores[i], detection));
+          new Recognition(i, labels.get((int) outputClasses[i]), outputScores[i], detection, inputSize));
     }
 
     final ArrayList<Recognition> recognitions = new ArrayList<Recognition>();

@@ -8,7 +8,7 @@ import android.widget.Toast;
 
 import com.example.alex.reemersiondemo.DataManager;
 import com.example.alex.reemersiondemo.R;
-import com.example.imageprocessinglib.ImageProcessor;
+import edu.umb.cs.imageprocessinglib.ImageProcessor;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;

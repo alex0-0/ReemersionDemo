@@ -1,6 +1,6 @@
-package com.example.alex.reemersiondemo.record;
+package edu.umb.cs.imageprocessinglib.feature;
 
-import com.example.alex.reemersiondemo.reemerge.FeatureMatcher;
+import edu.umb.cs.imageprocessinglib.util.ImageUtil;
 
 import org.opencv.core.DMatch;
 import org.opencv.core.KeyPoint;
@@ -11,6 +11,7 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Size;
 import org.opencv.features2d.FastFeatureDetector;
+import org.opencv.features2d.ORB;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 import org.opencv.xfeatures2d.SURF;
@@ -22,12 +23,12 @@ import java.util.List;
 /**
  * Created by alex on 1/27/18.
  */
-
 public class FeatureDetector {
     private static final int        kMaxFeatures = 200;
 
     private FastFeatureDetector     FAST;
-    private SURF                    surf;
+    private SURF surf;
+    private ORB orb;
 
     private static final FeatureDetector ourInstance = new FeatureDetector();
 
@@ -35,29 +36,30 @@ public class FeatureDetector {
         return ourInstance;
     }
 
+    //init ORB detector with specific limit on feature number,
+    // this constructor is only used for ORB detector, since no SURF detector is initialized
+    public FeatureDetector(int feautureNum) {
+        orb = ORB.create(feautureNum, 1.2f, 8, 15, 0, 2, ORB.HARRIS_SCORE, 31, 20);
+    }
+
     private FeatureDetector() {
         FAST = FastFeatureDetector.create();
         surf = SURF.create();
         surf.setHessianThreshold(400);
+        orb = ORB.create(500, 1.2f, 8, 15, 0, 2, ORB.HARRIS_SCORE, 31, 20);
     }
 
-    public boolean extractFeatures(Mat gray, MatOfKeyPoint keyPoints, Mat descriptors) {
-//        FAST.detect(gray, keyPoints);
-//        //too many features cause poor performance on mobile
-//        if (keyPoints.total() > kMaxFeatures) {
-//            List<KeyPoint> listOfKeyPoints = keyPoints.toList();
-//            Collections.sort(listOfKeyPoints, new Comparator<KeyPoint>() {
-//                @Override
-//                public int compare(KeyPoint o1, KeyPoint o2) {
-//                    return (int) (o2.response - o1.response);
-//                }
-//            });
-//            keyPoints.fromList(listOfKeyPoints.subList(0, kMaxFeatures));
-//        }
-        surf.detectAndCompute(gray, new Mat(), keyPoints, descriptors);
-//        surf.compute(gray, keyPoints, descriptors);
+    public void extractORBFeatures(Mat img, MatOfKeyPoint keyPoints, Mat descriptors) {
+        orb.detectAndCompute(img, new Mat(), keyPoints, descriptors);
 
-        return true;
+    }
+
+    public void extractSurfFeatures(Mat img, MatOfKeyPoint keyPoints, Mat descriptors) {
+        surf.detectAndCompute(img, new Mat(), keyPoints, descriptors);
+
+    }
+    public void extractFeatures(Mat img, MatOfKeyPoint keyPoints, Mat descriptors) {
+        extractORBFeatures(img, keyPoints, descriptors);
     }
 
     private static int kDistinctThreshold    =   3;      //threshold deciding whether a feature point is robust to distortion
@@ -86,7 +88,7 @@ public class FeatureDetector {
 
         //compare key points of original image to distorted images'
         for (int i = 0; i < distortedImages.size(); i++) {
-            MatOfDMatch m = FeatureMatcher.getInstance().matchFeature(img, ListOfDescriptors.get(i), des, ListOfKeyPoints.get(i), kp);
+            MatOfDMatch m = FeatureMatcher.getInstance().matchFeature(ListOfDescriptors.get(i), des, ListOfKeyPoints.get(i), kp);
 
             //record the times that key point of original image is detected in distorted image
             List<DMatch> matches = m.toList();
@@ -123,7 +125,6 @@ public class FeatureDetector {
     /**
      * Get a group of distorted images by applying transformation on original image
      * For now only scale and rotation is applying on the image
-     * TODO: Affine transformation, perspective transformation, refer to https://docs.opencv.org/3.4.0/da/d6e/tutorial_py_geometric_transformations.html
      * @param image
      * @return          a group of distorted images
      */
@@ -147,25 +148,16 @@ public class FeatureDetector {
      */
     private ArrayList<Mat> scaleImage(Mat image) {
         ArrayList<Mat> r = new ArrayList<>();
-        Size size = image.size();
-        double rows = size.height;
-        double cols = size.width;
         for (int i = 1; i <= kNumOfScales /2; i++) {
-            Mat largerImage = new Mat();
-            Mat smallerImage = new Mat();
-            Size newSize = new Size(rows * (1 + i * kStepScale), cols * (1 + i * kStepScale));
-            Imgproc.resize(image, largerImage, newSize);
-            newSize = new Size(rows * (1 - i * kStepScale), cols * (1 - i * kStepScale));
-            Imgproc.resize(image, smallerImage, newSize);
-            r.add(largerImage);
-            r.add(smallerImage);
+            r.add(ImageUtil.scaleImage(image, (1 + i * kStepScale)));
+            r.add(ImageUtil.scaleImage(image, (1 - i * kStepScale)));
         }
 
         return r;
     }
 
-    private static final float kStepAngle = 10.0f;        //the step difference between angles of generating distorted images, in degree.
-    private static final int kNumOfRotations = 6;    //the number of different scale distorted images
+    private static final float kStepAngle = 5.0f;        //the step difference between angles of generating distorted images, in degree.
+    private static final int kNumOfRotations = 6;    //the number of different rotated distorted images
 
     /**
      * Rotate original image to generate a group of distorted image
@@ -174,21 +166,9 @@ public class FeatureDetector {
      */
     private ArrayList<Mat> rotateImage(Mat image) {
         ArrayList<Mat> r = new ArrayList<>();
-        Size size = image.size();//new Size(image.cols(), image.rows());
-        Point center = new Point(size.width/2, size.height/2);
         for (int i = 1; i <= kNumOfRotations /2; i++) {
-            Mat leftRotated = new Mat();
-            Mat rightRotated = new Mat();
-
-            //create transformation matrix
-            Mat leftMatrix = Imgproc.getRotationMatrix2D(center, -kStepAngle * i, 1);
-            Mat rightMatrix = Imgproc.getRotationMatrix2D(center, kStepAngle * i, 1);
-            Imgproc.warpAffine(image, leftRotated, leftMatrix, size);
-            Imgproc.warpAffine(image, rightRotated, rightMatrix, size);
-            r.add(leftRotated);
-            r.add(rightRotated);
-            leftMatrix.release();
-            rightMatrix.release();
+            r.add(ImageUtil.rotateImage(image, -kStepAngle * i));
+            r.add(ImageUtil.rotateImage(image, kStepAngle * i));
         }
 
         return r;
@@ -297,3 +277,5 @@ public class FeatureDetector {
         return r;
     }
 }
+
+

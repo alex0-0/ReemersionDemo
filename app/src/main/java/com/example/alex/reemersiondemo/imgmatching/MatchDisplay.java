@@ -8,10 +8,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.alex.reemersiondemo.R;
-import com.example.imageprocessinglib.ImageFeatureObject;
-//import com.example.imageprocessinglib.ImageFeatureObject.FeatureDetector;
-//import com.example.imageprocessinglib.ImageFeatureObject.FeatureMatcher;
-import com.example.imageprocessinglib.ImageProcessor;
+//import com.example.imageprocessinglib.ImageFeature.FeatureDetector;
+//import com.example.imageprocessinglib.ImageFeature.FeatureMatcher;
+import edu.umb.cs.imageprocessinglib.ImageProcessor;
+import edu.umb.cs.imageprocessinglib.feature.FeatureDetector;
+import edu.umb.cs.imageprocessinglib.model.Recognition;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -20,6 +21,8 @@ import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.imgproc.Imgproc;
+
+import java.util.List;
 
 public class MatchDisplay extends Activity {
 
@@ -74,12 +77,36 @@ public class MatchDisplay extends Activity {
         Mat qDescriptors = new Mat(); //query image's Descriptors
 
         //get feature points
-        Mat gray = new Mat();
-        Imgproc.cvtColor(templateImg, gray, Imgproc.COLOR_BGRA2GRAY);
-//        FeatureDetector.getInstance().extractDistinctFeatures(gray, tKPs, tDescriptors);
-        ImageFeatureObject imageFeatureObject = ImageProcessor.extractDistinctFeatures(gray);
-        gray.release();
-        extractFeatures(queryImg, qKPs, qDescriptors);
+//        Mat gray = new Mat();
+//        Imgproc.cvtColor(templateImg, gray, Imgproc.COLOR_BGRA2GRAY);
+////        FeatureDetector.getInstance().extractDistinctFeatures(gray, tKPs, tDescriptors);
+//        ImageFeature imageFeatureObject = ImageProcessor.extractDistinctFeatures(gray);
+//        gray.release();
+//        extractFeatures(queryImg, qKPs, qDescriptors);
+
+        //test TensorFlow
+//        ImageProcessor imageProcessor = new ImageProcessor();
+//        Bitmap bitmap=Bitmap.createBitmap(templateImg.cols(),  templateImg.rows(), Bitmap.Config.ARGB_8888);
+//        Utils.matToBitmap(templateImg, bitmap);
+//        ImageProcessorConfig config = new ImageProcessorConfig(bitmap.getWidth(), bitmap.getHeight(), this, 0);
+//        imageProcessor.initObjectDetector(config);
+////        for (int k=0; k<100; k++) {
+//            List<Recognition> recognitionList = imageProcessor.recognizeImage(bitmap);
+//            int a = 0;
+//        }
+        //test the influence of feature points number on matching time
+//        for (int i = 100; i <= 500; i += 50) {
+//            ImageFeature feature = ImageProcessor.extractORBFeatures(templateImg, i);
+//            String log1 = String.format("Comparing %d vs %d FPs ", feature.getSize(),feature.getSize());
+//            Log.d("MATCH TEST", log1);
+//            long before=System.currentTimeMillis();
+//            for (int k=0; k<100; k++) {
+//                MatOfDMatch ms = ImageProcessor.matcheImages(feature, feature);
+//            }
+//            long after=System.currentTimeMillis();
+//            String log = String.format("takes %.03f s\n", ((float)(after-before)/1000/100));
+//            Log.d("MATCH TEST", log);
+//        }
 
         //get matches
 //        MatOfDMatch matches = FeatureMatcher.getInstance().matchFeature(queryImg, qDescriptors, tDescriptors, qKPs, tKPs);
@@ -116,13 +143,14 @@ public class MatchDisplay extends Activity {
 //        qDescriptors.release();
 //        matches.release();
 
-        return displayImage;
+//        return displayImage;
+        return queryImg;
     }
 
     private void extractFeatures(Mat img, MatOfKeyPoint keyPoints, Mat descriptors) {
         Mat gray = new Mat();
         Imgproc.cvtColor(img, gray, Imgproc.COLOR_BGRA2GRAY);
-//        FeatureDetector.getInstance().extractFeatures(gray, keyPoints, descriptors);
+        FeatureDetector.getInstance().extractFeatures(gray, keyPoints, descriptors);
         gray.release();
     }
 

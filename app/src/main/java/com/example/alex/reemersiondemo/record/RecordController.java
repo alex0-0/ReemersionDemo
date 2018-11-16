@@ -11,9 +11,9 @@ import android.widget.Toast;
 import com.example.alex.reemersiondemo.DataManager;
 import com.example.alex.reemersiondemo.OrientationManager;
 import com.example.alex.reemersiondemo.R;
-import com.example.imageprocessinglib.ImageProcessor;
-import com.example.imageprocessinglib.ImageProcessorConfig;
-import com.example.imageprocessinglib.Recognition;
+import edu.umb.cs.imageprocessinglib.ImageProcessor;
+import edu.umb.cs.imageprocessinglib.ObjectDetector;
+import edu.umb.cs.imageprocessinglib.model.Recognition;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -62,7 +62,7 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
     private boolean                                 refRecorded = false;        //whether reference object recorded
     private volatile boolean                        onProcessing = false;
     private ArrayList<Recognition>                  recognitions;
-    private ImageProcessor                          imageProcessor;
+    private ObjectDetector                          detector;
 
     //AsyncTask, run computation of feature detection in background thread
     private FeatureDetectTask fpTask;
@@ -189,15 +189,14 @@ public class RecordController extends Activity implements CameraBridgeViewBase.C
             mRgba = inputFrame.rgba().clone();      //to remove drawn feature point on the picture.
             mGray = inputFrame.gray();
 
-            if (imageProcessor == null) {
-                imageProcessor = new ImageProcessor();
-                ImageProcessorConfig config = new ImageProcessorConfig(mRgba.width(), mRgba.height(), this, 0);
-                imageProcessor.initObjectDetector(config);
+            if (detector == null) {
+                detector = new ObjectDetector();
+                detector.init(this);
             }
 
             fpTask = new FeatureDetectTask();
             //Callback after computation ends and pass necessary parameters
-            fpTask.execute(mRgba, mGray, imageProcessor, new Runnable() {
+            fpTask.execute(mRgba, mGray, detector, new Runnable() {
                 @Override
                 public void run() {
                     boundRects = fpTask.getBoundRects();

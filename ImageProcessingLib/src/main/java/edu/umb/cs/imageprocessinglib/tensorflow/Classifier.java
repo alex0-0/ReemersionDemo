@@ -1,11 +1,8 @@
-package com.example.imageprocessinglib.tensorflow;
-
+package edu.umb.cs.imageprocessinglib.tensorflow;
 
 import android.graphics.Bitmap;
-
-import com.example.imageprocessinglib.Recognition;
-
 import java.util.List;
+import edu.umb.cs.imageprocessinglib.model.Recognition;
 
 /**
  * Generic interface for interacting with different recognition engines.

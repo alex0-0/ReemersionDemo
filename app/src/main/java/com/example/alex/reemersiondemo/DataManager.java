@@ -1,12 +1,13 @@
 package com.example.alex.reemersiondemo;
 
-import com.example.imageprocessinglib.Recognition;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.imgcodecs.Imgcodecs;
 
 import java.util.ArrayList;
+
+import edu.umb.cs.imageprocessinglib.model.Recognition;
 
 /**
  * Created by alex on 1/29/18.

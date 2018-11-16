@@ -2,9 +2,11 @@ package com.example.alex.reemersiondemo.record;
 
 import android.os.AsyncTask;
 
-//import com.example.imageprocessinglib.ImageFeatureObject.FeatureDetector;
-import com.example.imageprocessinglib.ImageProcessor;
-import com.example.imageprocessinglib.Recognition;
+//import com.example.imageprocessinglib.ImageFeature.FeatureDetector;
+import edu.umb.cs.imageprocessinglib.ImageProcessor;
+import edu.umb.cs.imageprocessinglib.ObjectDetector;
+import edu.umb.cs.imageprocessinglib.model.BoxPosition;
+import edu.umb.cs.imageprocessinglib.model.Recognition;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfKeyPoint;
@@ -43,13 +45,13 @@ public class FeatureDetectTask extends AsyncTask {
     protected Object doInBackground(Object[] params) {
         Mat rgba = (Mat)params[0];
         Mat gray = (Mat)params[1];
-        ImageProcessor imageProcessor = (ImageProcessor) params[2];
+        ObjectDetector detector = (ObjectDetector) params[2];
 //        FeatureDetector detector = (FeatureDetector) params[2];
         r = (Runnable)params[3];
 //        ArrayList<Rect> boundRects = tfDetector.recognizeImage(rgba);
 //        recognitions = tfDetector.getRecognitions();
-        List<Recognition> recognitions = imageProcessor.recognizeImage(rgba);
-//        ImageFeatureObject imageFeature = imageProcessor.extractFeatures(gray);
+        List<Recognition> recognitions = detector.recognizeImage(rgba);
+//        ImageFeature imageFeature = imageProcessor.extractFeatures(gray);
 //        objectKeypoints = imageFeature.getObjectKeypoints();
 //        descriptors = imageFeature.getDescriptors();
 //        ArrayList<Rect> boundRects = yoloDetector.recognizeImage(rgba);
@@ -60,9 +62,8 @@ public class FeatureDetectTask extends AsyncTask {
 //        this.boundRects = boundRects;
         ArrayList<Rect> rects = new ArrayList<>();
         for (Recognition r : recognitions) {
-            android.graphics.Rect rect = new android.graphics.Rect();
-            r.getOriginalLoc().round(rect);
-            Rect rec = new Rect(rect.left, rect.top, rect.width(), rect.height());
+            BoxPosition bp = r.getScaledLocation(rgba.cols()/detector.cropSize, rgba.rows()/detector.cropSize);
+            Rect rec = new Rect(bp.getLeftInt(), bp.getTopInt(), bp.getWidthInt(), bp.getHeightInt());
             rects.add(rec);
         }
         boundRects = rects;

@@ -13,24 +13,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-package com.example.imageprocessinglib.tensorflow;
+package edu.umb.cs.imageprocessinglib.tensorflow;
 
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Trace;
-
-//import com.google.ar.sceneform.samples.hellosceneform.env.Logger;
-//import com.google.ar.sceneform.samples.hellosceneform.env.SplitTimer;
-
-import com.example.imageprocessinglib.Recognition;
-
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
+
+import edu.umb.cs.imageprocessinglib.model.BoxPosition;
+import edu.umb.cs.imageprocessinglib.model.Recognition;
 
 /** An object detector that uses TF and a YOLO model to detect objects. */
 public class TensorFlowYoloDetector implements Classifier {
@@ -203,12 +200,12 @@ public class TensorFlowYoloDetector implements Classifier {
           final float w = (float) (Math.exp(output[offset + 2]) * ANCHORS[2 * b + 0]) * blockSize;
           final float h = (float) (Math.exp(output[offset + 3]) * ANCHORS[2 * b + 1]) * blockSize;
 
-          final RectF rect =
-              new RectF(
+          final BoxPosition rect = new BoxPosition(
                   Math.max(0, xPos - w / 2),
                   Math.max(0, yPos - h / 2),
-                  Math.min(bitmap.getWidth() - 1, xPos + w / 2),
-                  Math.min(bitmap.getHeight() - 1, yPos + h / 2));
+                  w,
+                  h
+          );
           final float confidence = expit(output[offset + 4]);
 
           int detectedClass = -1;
@@ -231,7 +228,7 @@ public class TensorFlowYoloDetector implements Classifier {
           if (confidenceInClass > 0.01) {
 //            LOGGER.i(
 //                "%s (%d) %f %s", LABELS[detectedClass], detectedClass, confidenceInClass, rect);
-            pq.add(new Recognition("" + offset, LABELS[detectedClass], confidenceInClass, rect));
+            pq.add(new Recognition(offset, LABELS[detectedClass], confidenceInClass, rect, inputSize));
           }
         }
       }
